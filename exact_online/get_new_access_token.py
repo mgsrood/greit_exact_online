@@ -15,8 +15,7 @@ client_secret = os.getenv('CLIENT_SECRET')
 redirect_uri = os.getenv('REDIRECT_URI')
 try:
     # Manually retrieve authorization code from user input
-    authorization_code = 'stampNL001.TffI%21IAAAAPWEgCNH0tIRsDGRtGzA_QxWZqprK8p9m67JAQ32zV01wQEAAAF4nJdz24FPlpIWwBSjrKCr1Y4LsEZZTB5EpvsSQcNDfMVH4U78U7wGjR9e6YG6jZIdrJJcOoatHE4achF-jWirYduX_snayfHxV7wRJcc5DJfEiExznE8jTzkZO41RVhcd0mYh8qbx-HJE6n7UNthmyax8TzKhmFNet_0PiRW7HaDHU0f5H_p83ynPotrLS3t8RP-fpVNX2hbt3itkOMBXgFpol3TUWoIVyKsVcXLuO0_zKRAFEom3sF9GRbx0eEJmyEvEru0eAl5oEzwOj5meVMQkeVbWtXwfip6i52xzW9vFhbIxgPMlj_0k_aJWEHw5U_cQdYP1NTnBdbffAUu-fTc_WAIWeKlPNcmK0Vcq8bcyNaLzaQgH8N-dFDymFvEoFLEFzlK3jEcK2LYVC1qe16I9Yk3oQErtrl4RrC26TJrqrRR_zEdrJZjQJN8frXu6DPqFiuz5-tX1vM-aZNY_zXRX8wah8L9OWJMR4Rn0H52I1-phGNPQKbu6Ab_-4PqerkPYZDGkxEVWtASxRZ04XD4fnAemFaVKnovkfteiWcwVWw1Fp2i4-mEiVavHgkSjv06uOFRAETKCYWFcpAt3'
-    
+    authorization_code = 'stampNL001.TffI%21IAAAAFwcy7YQEfRZTwqJObM9YJGfnmv0jDg03_eSx4jVJTrawQEAAAFUUjScNkb8NptLxU7vUYxN7ObiLheqce4bimvEALlaV8iq-v-l2Or86718vzae644m-RyjoE1hm58qyI8K-Skb-gWc-kMf5EOZBGScNR8SqahOX720VxRysLMqK5bm5Np297kNn2UoHeB9B4m4HP5Zu0Z50kfmeajdrk14EVrjobcJ6gPZiqDSmmua8r2nbrEGASU8X3xH3IME1X3X53rD1iRMG75q8O3N5fFESE4dcX-tsFt-fCJ76PE697tx1i2v_Ik7hv3V-C8Y2s3nw-OlUVneV76_c76X2kxTMkz7JRcXvpzNyBtkKwfIQ5G3zPG1novGHJkd5AN6C_CGPwJxf6A9Cow1GMPdrH8nly86NOmGWi9tkGZd9V_Q54Isz7sVCJw_AE9MF-FyQbzVlIGpEEgKbkq4FgbUtd11DOT0va9_UQdHZjqm8ApyVbCwiyUcd6tehG33AatYHmpfcNrH8d6WXxMwoiL1DW02tvFp1_zglQELXOfBw3wk3c58kXdnxJtUJi4rHJmPZWXBjaUtwuJj21i51I_j6YARVA_sjAASH1Wzo1u_xrmQa_9mZddNFxSbJwVrN2Ud_gILXXCr'
     authorization_code = unquote(authorization_code)
 
     # Exchange authorization code for access token
@@ -42,6 +41,7 @@ try:
         # Save access token to file
         dotenv_path = find_dotenv()
         set_key(dotenv_path, "ACCESS_TOKEN", access_token)
+        print("Save new access token to .env file")
         
         # Save refresh token to file
         refresh_token = token_data.get('refresh_token')
@@ -49,6 +49,7 @@ try:
 
         dotenv_path = find_dotenv()
         set_key(dotenv_path, "REFRESH_TOKEN", refresh_token)
+        print("Save new refresh token to .env file")
 
     else:
         print(f"\nError: {token_response.status_code} - {token_response.text}")
