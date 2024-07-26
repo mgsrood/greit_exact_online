@@ -3,9 +3,16 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import os
 from dotenv import set_key, load_dotenv, find_dotenv
+from sqlalchemy import create_engine
 
 # Laad de omgevingsvariabelen uit het .env-bestand
 load_dotenv()
+
+# Definieer database gegevens
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_host = os.getenv("DB_HOST") # Lokaal of cloud?
+db_name = os.getenv("DB_NAME")
 
 def load_access_token():
     # Retrieve the access token from the environment
@@ -88,7 +95,7 @@ def get_request(division_code, url, endpoint):
             # Kijk of er een volgende pagina is
             next_link = root.find('.//{http://www.w3.org/2005/Atom}link[@rel="next"]')
             full_url = next_link.attrib['href'] if next_link is not None else None
-
+            print(full_url)
         else:
             print(f"Fout bij het ophalen van gegevens: {response.status_code} - {response.text}")
             oude_refresh_token = load_refresh_token()
@@ -130,6 +137,13 @@ if __name__ == "__main__":
     df = get_request(division_code, url, endpoint)
     if df is not None:
         print(df)
-        export_to_csv(df, "transaction_lines.csv")
+        '''export_to_csv(df, "transaction_lines.csv")'''
 
+'''     # Maak een connectie met de database
+        engine = create_engine(f'mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}')
 
+        # Definieer de tabelnaam
+        table_name = 'table_name'
+
+        # Exporteer de DataFrame naar de database
+        df.to_sql(table_name, con=engine, if_exists='append', index=False)'''
