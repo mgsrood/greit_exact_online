@@ -15,7 +15,7 @@ client_secret = os.getenv('CLIENT_SECRET')
 redirect_uri = os.getenv('REDIRECT_URI')
 try:
     # Manually retrieve authorization code from user input
-    authorization_code = 'stampNL001.7Aao%21IAAAAHENOm4FTlO5rYwtTQLqzUcJ18I9NxYZw_WywwnHFBuvwQEAAAETKMv3GeYOGewnR5CNFSOtyGDpmK32KUyv3RH-6rEWvNs7InfqKSC2BPzUZW5PLXcFFT8843z7N0WoCGOoVCdjPJxtDli7D32dRp1NTSZefSTU6WN9zs8IHPItI2r5LIVxeEyd-rPZEbT0rugWkOnPOczeQyyPXjuRrOux5wS6W6iSi15VOQlrCdtwTstd6DtlFcoBR2foFs69S0-ITe43I5u0bHwwP6g2A3hiIGcVvC8LZePcfyikpk0ceL95VQvKSEbqln_40Yv1BvXifDkd0KnX0PWqqw83aWbtklIzvt3oqepXDoh5Q41hbsV5ImYvbj6DRGMh7sgFmN-wrQC1MM_MifeqTf370H0Z0PqeyNkhsa01gPtoGKz28Zo4jFtTcM5YBKD5iikagz1K4pM05CHeHzen8ot_n3SWb_ePBZv3uz1XszrXK1ayRhO-4cEYoxwJPefE9hqG_3eB93P6rlYTMe91e5u9XTs1WIq4GvGXhWbh4-GToul7ZqW-RJqtkvgnPKFBamB0wNd3OcE7hrEVerKXGckp9JwGdigWgPhIrjIoH1PMIg8IDn7yJGcxMj0FZy5CpkkJhlKRB70Q'
+    authorization_code = 'stampNL001.7Aao%21IAAAAEx89qGON_MEpziMAyb0iUwNBuMymOeSGY1ttqSQ7zsNwQEAAAGlbVxKDPcBwdl3qGSxtp7ypiA_aohOwyjH3QdW3zysakbi3f0PwA07HvG6qkvtWg0Kj9vmmXfBNviP4uBfbqvhLKnwhsDHPepxUZY6lU3yDZPeUbWwdel02iRomQD4_9yW3h3YeMrUB8DV3LmpMT9xEE4Gcc5sTEimpuJn5BCDHgIKOfDZuaVftBYzt2jcboR0eE03d7e7PZA_cphr3SBuKTmNmep2E5PbryauS1LoK3wWMXn-Vr2Tpgl3b6kKGtFs-ORhaXaU1H5mQOg8oxBmLkzhA-qhbjxDrTU0pb0NDAf_rFVGSEpOhBmeUsrk7n2mlkr_090MtBbLSsnWES-fi2O-SX1CQ0sLyRjRGvm5Q-XQBJhnMbBs528Z2Ots08J_mQG7hmDl-AhWWZGEQbpEj7AATnQd4wp4I05jzZiaawC6o2H7cKN7eO14zSsF_lro8nVTxPP6aYVM161AvzdqbnHCw7zo2rT23oDFUEaJIvXiSenNV7VCozk3ZTkW9mBFJ239aiETru6oOViDYP8h_ZOzx6_XTjVuPNE-M7Gvqi3nXza_0m5XuXJRPArU2GAN-bp0si3e1wuT9P0BRpW7'
     
     authorization_code = unquote(authorization_code)
 
@@ -46,7 +46,7 @@ try:
         
         # Save refresh token to file
         refresh_token = token_data.get('refresh_token')
-        print(f"\nRefresh Token: {access_token}")
+        print(f"\nRefresh Token: {refresh_token}")
 
         dotenv_path = find_dotenv()
         set_key(dotenv_path, "REFRESH_TOKEN", refresh_token)

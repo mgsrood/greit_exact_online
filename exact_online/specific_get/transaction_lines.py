@@ -95,7 +95,7 @@ def get_request(division_code, url, endpoint):
             # Kijk of er een volgende pagina is
             next_link = root.find('.//{http://www.w3.org/2005/Atom}link[@rel="next"]')
             full_url = next_link.attrib['href'] if next_link is not None else None
-            print(full_url)
+
         else:
             print(f"Fout bij het ophalen van gegevens: {response.status_code} - {response.text}")
             oude_refresh_token = load_refresh_token()
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     # Laad de divisie code
     division_code = os.getenv("DIVISION_CODE")
     
-    # URL en Endpoint
+    # URL en Endpoint and Parameters
     url = f"https://start.exactonline.nl/api/v1/{division_code}"
     endpoint = "/bulk/Financial/TransactionLines?$select=ID,Account,AmountDC,AmountVATFC,Currency,Date,Description,Division,EntryNumber,FinancialPeriod,FinancialYear,GLAccount,InvoiceNumber,OrderNumber,PaymentReference,VATPercentage"
     
