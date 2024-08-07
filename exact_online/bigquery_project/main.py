@@ -48,8 +48,8 @@ def get_request(division_code, url, endpoint):
             full_url = next_link.attrib['href'] if next_link is not None else None
 
             # Wacht 10 seconden voordat je de volgende request doet
-            print("Volgende batch opvragen in 10 seconden...")
-            time.sleep(10)
+            print("Volgende batch opvragen")
+            time.sleep(1)
 
         else:
             print(f"Fout bij het ophalen van gegevens: {response.status_code} - {response.text}")
@@ -117,16 +117,7 @@ if __name__ == "__main__":
     # URL en endpoints
     url = f"https://start.exactonline.nl/api/v1/{division_code}/"
     endpoints = {
-        'Grootboekrekening': 'bulk/financial/GLAccounts?$select=ID,BalanceSide,BalanceType,Code,Costcenter,CostcenterDescription,Costunit,CostunitDescription,Description,Division,Type,TypeDescription',
-        'GrootboekRubrieken': 'bulk/Financial/GLClassifications?$select=Code,Description,Division,ID,Parent,TaxonomyNamespaceDescription',
-        'GrootboekMutaties': 'financialtransaction/TransactionLines?$select=ID,Account,AmountDC,AmountVATFC,Currency,Date,Description,Division,EntryNumber,FinancialPeriod,FinancialYear,GLAccount,InvoiceNumber,OrderNumber,PaymentReference,VATPercentage',
-        'CrediteurenOpenstaand': 'read/financial/PayablesList?$select=HID,AccountId,Amount,CurrencyCode,Description,DueDate,EntryNumber,InvoiceDate,InvoiceNumber,YourRef',
-        'DebiteurenOpenstaand': 'read/financial/ReceivablesList?$select=AccountCode,AccountId,AccountName,Amount,CurrencyCode,Description,DueDate,EntryNumber,Id,InvoiceDate,InvoiceNumber,JournalCode,YourRef',
-        'Relaties': 'bulk/CRM/Accounts?$select=AccountManagerFullName,ActivitySector,ActivitySubSector,AddressLine1,BusinessType,City,Classification,Classification1,Classification2,Classification3,Classification4,Classification5,Classification6,Classification7,Classification8,ClassificationDescription,Code,CountryName,CustomerSince,Division,ID,IsPurchase,IsSupplier,Name,Parent,Postcode,SalesCurrencyDescription,StateName,Status',
-        'RelatieKeten': 'crm/AccountClassifications?$select=AccountClassificationName,AccountClassificationNameDescription,Code,Description,Division',
-        'Budget': 'budget/Budgets?$select=ID,AmountDC,BudgetScenarioDescription,CostcenterDescription,CostunitDescription,Division,GLAccount,ItemDescription,ReportingPeriod,ReportingYear',
-        'GrootboekRubriekenMapping': 'financial/GLAccountClassificationMappings?$select=ID,Classification,Division,GLAccount,GLSchemeDescription',
-        'ReportingBalans': 'financial/ReportingBalance?$select=ID,Amount,AmountCredit,AmountDebit,BalanceType,CostCenterDescription,CostUnitDescription,Count,Division,GLAccount,ReportingPeriod,ReportingYear'
+        'GrootboekMutaties': 'bulk/Financial/TransactionLines?$filter=FinancialYear eq 2016&$select=ID,Account,AmountDC,AmountVATFC,Currency,Date,Description,Division,EntryNumber,FinancialPeriod,FinancialYear,GLAccount,InvoiceNumber,OrderNumber,PaymentReference,VATPercentage',
     }
 
     for table, endpoint in endpoints.items():
@@ -135,5 +126,8 @@ if __name__ == "__main__":
             # Full table id
             full_table_id = f'greit-administration.klant_1_dataset.{table}'
 
-            # Schrijf de dataframe naar een BigQuery table
-            pd_gbq.to_gbq(df, full_table_id, project_id=project_id, if_exists='replace')
+            # Show all columns of DataFrame in terminal
+            pd.set_option('display.max_columns', None)
+
+            # Print DataFrame
+            print(df)
