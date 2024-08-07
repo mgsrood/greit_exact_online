@@ -8,7 +8,7 @@ def connect_to_database(connection_string):
         print(f"Fout bij verbinding: {e}")
         return None
 
-def write_to_database(df, tabel, connection_string):
+'''def write_to_database(df, tabel, connection_string):
     table_conn = connect_to_database(connection_string)
     if table_conn:
         cursor = table_conn.cursor()
@@ -26,7 +26,38 @@ def write_to_database(df, tabel, connection_string):
         table_conn.commit()
         cursor.close()
         table_conn.close()
-        print(f"DataFrame succesvol toegevoegd aan de tabel: {tabel}")
+        print(f"DataFrame succesvol toegevoegd aan de tabel: {tabel}")'''
+
+def write_to_database(df, tabel, connection_string, unique_column, division_column):
+    table_conn = connect_to_database(connection_string)
+    if table_conn:
+        cursor = table_conn.cursor()
+
+        # Controleer of de tabel bestaat
+        cursor.execute(f"IF OBJECT_ID('{tabel}', 'U') IS NULL BEGIN PRINT 'Tabel niet gevonden.'; RETURN; END")
+
+        # Voorbereiden van de MERGE statement
+        merge_query = f"""
+        MERGE {tabel} AS target
+        USING (
+            SELECT {', '.join([f'? AS {col}' for col in df.columns])}
+        ) AS source
+        ON (target.{unique_column} = source.{unique_column} AND target.{division_column} = source.{division_column})
+        WHEN MATCHED THEN 
+            UPDATE SET {', '.join([f"target.{col} = source.{col}" for col in df.columns if col not in [unique_column, division_column]])}
+        WHEN NOT MATCHED THEN
+            INSERT ({', '.join(df.columns)})
+            VALUES ({', '.join(['source.' + col for col in df.columns])});
+        """
+
+        # Voeg de DataFrame rijen toe aan de bestaande tabel of update ze
+        for row in df.itertuples(index=False):
+            cursor.execute(merge_query, row)
+    
+        table_conn.commit()
+        cursor.close()
+        table_conn.close()
+        print(f"DataFrame succesvol toegevoegd/ bijgewerkt in de tabel: {tabel}")
 
 def clear_table(connection_string, table, mode, reporting_year, division_code):
     try:

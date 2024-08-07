@@ -356,3 +356,7 @@ if __name__ == "__main__":
         cursor = logging_conn.cursor()
         logging(cursor, logging_conn, klantnaam, f"Script succesvol afgerond")
         logging_conn.close()
+
+Openstaand = {
+    
+}

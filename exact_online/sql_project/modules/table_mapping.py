@@ -103,7 +103,7 @@ Relaties = {
 }
 
 RelatieKeten = {
-    'AccountClassificationName': 'ID',
+    'ID': 'ID',
     'Division': 'AdministratieCode',
     'AccountClassificationNameDescription': 'ClassificatieNaam',
     'Code': 'Code',
