@@ -22,8 +22,8 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
     logging_conn = connect_to_database(finn_it_connection_string)
     if logging_conn:
         cursor = logging_conn.cursor()
-        logging(cursor, logging_conn, klantnaam, f"Start GET Request: {tabel}")
-        logging(cursor, logging_conn, klantnaam, f"Ophalen configuratiegegevens")
+        logging(cursor, logging_conn, klantnaam, f"Start GET Request voor tabel: {tabel} | {division_name} ({division_code})")
+        logging(cursor, logging_conn, klantnaam, f"Ophalen configuratiegegevens voor tabel: {tabel} | {division_name} ({division_code})")
         logging_conn.close()
 
     # Config ophalen
@@ -116,7 +116,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
                 logging_conn = connect_to_database(finn_it_connection_string)
                 if logging_conn:
                     cursor = logging_conn.cursor()
-                    logging(cursor, logging_conn, klantnaam, f"Ophalen nieuwe access- en refresh token gelukt")
+                    logging(cursor, logging_conn, klantnaam, f"Ophalen nieuwe access- en refresh token gelukt voor {klantnaam}")
                     logging_conn.close()
             else:
                 return pd.DataFrame()
@@ -131,7 +131,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
     logging_conn = connect_to_database(finn_it_connection_string)
     if logging_conn:
         cursor = logging_conn.cursor()
-        logging(cursor, logging_conn, klantnaam, f"GET Request succesvol afgerond: {tabel}")
+        logging(cursor, logging_conn, klantnaam, f"GET Request succesvol afgerond voor tabel: {tabel} | {division_name} ({division_code})")
         logging_conn.close()
 
     return df
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     logging_conn = connect_to_database(finn_it_connection_string)
     if logging_conn:
         cursor = logging_conn.cursor()
-        logging(cursor, logging_conn, klantnaam, f"Ophalen connectiestring gestart")
+        logging(cursor, logging_conn, klantnaam, f"Ophalen connectiestrings gestart")
         logging_conn.close()
     
     # Verbinding maken met database
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     logging_conn = connect_to_database(finn_it_connection_string)
     if logging_conn:
         cursor = logging_conn.cursor()
-        logging(cursor, logging_conn, klantnaam, f"Ophalen connectiestring gelukt")
+        logging(cursor, logging_conn, klantnaam, f"Ophalen connectiestrings gelukt")
         logging_conn.close()
 
     # Klant loop
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         logging_conn = connect_to_database(finn_it_connection_string)
         if logging_conn:
             cursor = logging_conn.cursor()
-            logging(cursor, logging_conn, klantnaam, f"Ophalen configuratie gegevens gestart")
+            logging(cursor, logging_conn, klantnaam, f"Ophalen configuratie gegevens gestart voor: {klantnaam}")
             logging_conn.close()
         
         # Ophalen configuratie gegevens
@@ -205,8 +205,8 @@ if __name__ == "__main__":
         logging_conn = connect_to_database(finn_it_connection_string)
         if logging_conn:
             cursor = logging_conn.cursor()
-            logging(cursor, logging_conn, klantnaam, f"Ophalen configuratie gegevens gelukt")
-            logging(cursor, logging_conn, klantnaam, f"Ophalen divisiecodes gestart")
+            logging(cursor, logging_conn, klantnaam, f"Ophalen configuratie gegevens gelukt voor: {klantnaam}")
+            logging(cursor, logging_conn, klantnaam, f"Ophalen divisiecodes gestart voor: {klantnaam}")
             logging_conn.close()
 
         # Ophalen divisiecodes
@@ -220,19 +220,19 @@ if __name__ == "__main__":
         logging_conn = connect_to_database(finn_it_connection_string)
         if logging_conn:
             cursor = logging_conn.cursor()
-            logging(cursor, logging_conn, klantnaam, f"Ophalen divisiecodes gelukt")
+            logging(cursor, logging_conn, klantnaam, f"Ophalen divisiecodes gelukt voor: {klantnaam}")
             logging_conn.close()
 
         # Verbinding maken per divisie code
         for division_name, division_code in division_dict.items():
             # Print divisie naam en divisie code
-            print(f"Begin GET Requests voor divisie: {division_name} ({division_code})")
+            print(f"Begin GET Requests voor divisie: {division_name} ({division_code}) | {klantnaam}")
 
             # Pre-actie logging
             logging_conn = connect_to_database(finn_it_connection_string)
             if logging_conn:
                 cursor = logging_conn.cursor()
-                logging(cursor, logging_conn, klantnaam, f"Start GET Requests voor divisie: {division_name} ({division_code})")
+                logging(cursor, logging_conn, klantnaam, f"Start GET Requests voor divisie: {division_name} ({division_code}) | {klantnaam}")
                 logging_conn.close()
 
             url = f"https://start.exactonline.nl/api/v1/{division_code}/"
@@ -252,6 +252,13 @@ if __name__ == "__main__":
             # Endpoint loop
             for tabel, endpoint in endpoints.items():
                 df = get_request(division_code, url, endpoint, connection_string, finn_it_connection_string, klantnaam, tabel)
+
+                # Pre-actie logging
+                logging_conn = connect_to_database(finn_it_connection_string)
+                if logging_conn:
+                    cursor = logging_conn.cursor()
+                    logging(cursor, logging_conn, klantnaam, f"Start data mapping voor tabel: {tabel} | {division_name} ({division_code})")
+                    logging_conn.close()
 
                 # Tabel mapping
                 mapping_dict = {
@@ -275,6 +282,14 @@ if __name__ == "__main__":
                 # Transform the DataFrame columns
                 df_transformed = transform_columns(df, column_mapping, division_code)
 
+                # Post- en pre-actie logging
+                logging_conn = connect_to_database(finn_it_connection_string)
+                if logging_conn:
+                    cursor = logging_conn.cursor()
+                    logging(cursor, logging_conn, klantnaam, f"Data mapping voltooid voor tabel: {tabel} | {division_name} ({division_code})")
+                    logging(cursor, logging_conn, klantnaam, f"Start data type conversie voor tabel: {tabel} | {division_name} ({division_code})")
+                    logging_conn.close()
+
                 # Column mapping
                 column_dictionary = {
                     "CrediteurenOpenstaand": CrediteurenOpenstaandTyping,
@@ -296,6 +311,14 @@ if __name__ == "__main__":
 
                 # Transform the DataFrame column types
                 df_transformed = convert_column_types(df_transformed, column_types)
+
+                # Post- en pre-actie logging
+                logging_conn = connect_to_database(finn_it_connection_string)
+                if logging_conn:
+                    cursor = logging_conn.cursor()
+                    logging(cursor, logging_conn, klantnaam, f"Data type conversie voltooid voor tabel: {tabel} | {division_name} ({division_code})")
+                    logging(cursor, logging_conn, klantnaam, f"Start mogelijk verwijderen rijen of complete tabel: {tabel} | {division_name} ({division_code})")
+                    logging_conn.close()
 
                 # Table modes for deleting rows or complete table
                 table_modes = {
@@ -319,10 +342,26 @@ if __name__ == "__main__":
                     continue
 
                 # Clear the table
-                clear_table(connection_string, tabel, table_mode, reporting_year, division_code)
+                actie = clear_table(connection_string, tabel, table_mode, reporting_year, division_code)
+
+                # Post- en pre-actie logging
+                logging_conn = connect_to_database(finn_it_connection_string)
+                if logging_conn:
+                    cursor = logging_conn.cursor()
+                    logging(cursor, logging_conn, klantnaam, f"{actie} | {division_name} ({division_code})")
+                    logging(cursor, logging_conn, klantnaam, f"Start toeschrijven rijen naar database voor tabel: {tabel} | {division_name} ({division_code})")
+                    logging_conn.close()
 
                 # Write the DataFrame to the database
                 write_to_database(df_transformed, tabel, connection_string, 'ID', 'AdministratieCode')
+
+                # Post- en pre-actie logging
+                logging_conn = connect_to_database(finn_it_connection_string)
+                if logging_conn:
+                    cursor = logging_conn.cursor()
+                    logging(cursor, logging_conn, klantnaam, f"Toeschrijven rijen naar database succesvol afgerond voor tabel : {tabel} | {division_name} ({division_code})")
+                    logging_conn.close()
+
 
             # Post-actie logging
             logging_conn = connect_to_database(finn_it_connection_string)

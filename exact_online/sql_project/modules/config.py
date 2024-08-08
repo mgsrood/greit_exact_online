@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from modules.database import connect_to_database
 
 def fetch_all_connection_strings(cursor):
@@ -47,7 +47,8 @@ def save_laatste_sync(connection_string):
         query = 'UPDATE Config SET Waarde = ? WHERE Config = ?'
         config = 'Laatste_sync'
         now = datetime.now()
-        laatste_sync = now.strftime("%Y-%m-%dT%H:%M:%S")
+        yesterday = now - timedelta(days=1)
+        laatste_sync = yesterday.strftime("%Y-%m-%dT%H:%M:%S")
         try:
             cursor.execute(query, (laatste_sync, config))
             sync_conn.commit()  # Maak de wijziging permanent
