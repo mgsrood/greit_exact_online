@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import time
 import requests
+import re
 from datetime import datetime
 from modules.logging import logging
 from modules.config import fetch_all_connection_strings, fetch_configurations, fetch_division_codes, save_laatste_sync, save_reporting_year
@@ -12,6 +13,11 @@ from modules.type_mapping import convert_column_types, CrediteurenOpenstaandTypi
 from modules.table_mapping import transform_columns, CrediteurenOpenstaand, DebiteurenOpenstaand, GrootboekMutaties, GrootboekRubriek, Grootboekrekening, Relaties, RelatieKeten, Budget, GrootboekMapping, ReportingBalance
 import xml.etree.ElementTree as ET
 import pandas as pd
+
+def clean_xml_string(xml_string):
+    """Remove invalid XML characters from the XML string."""
+    # Remove invalid XML characters (e.g., control characters like `&#x1F;`)
+    return re.sub(r'&#x[0-9A-Fa-f]+;', '', xml_string)
 
 def get_request(division_code, url, endpoint, connection_string, finn_it_connection_string, klantnaam, tabel):
     full_url = f"{url}{endpoint}"
@@ -63,8 +69,11 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 
         # Controleer of de request succesvol was
         if response.status_code == 200:
+            # Reinig de XML response van ongewenste tekens
+            cleaned_response = clean_xml_string(response.text)
+            
             # Parse de XML-response
-            root = ET.fromstring(response.content)
+            root = ET.fromstring(cleaned_response)
             
             # Loop door elk <entry> element en haal de data op
             for entry in root.findall('.//{http://www.w3.org/2005/Atom}entry'):
@@ -323,7 +332,7 @@ if __name__ == "__main__":
                 # Table modes for deleting rows or complete table
                 table_modes = {
                     "Grootboekrekening": "none",
-                    "GrootboekRubrieken": "none",
+                    "GrootboekRubriek": "none",
                     "GrootboekMutaties": "none",
                     "CrediteurenOpenstaand": "truncate",
                     "DebiteurenOpenstaand": "truncate",
@@ -367,7 +376,7 @@ if __name__ == "__main__":
             logging_conn = connect_to_database(finn_it_connection_string)
             if logging_conn:
                 cursor = logging_conn.cursor()
-                logging(cursor, logging_conn, klantnaam, f"GET Requests succesvol afgerond voor divisie: {division_name}")
+                logging(cursor, logging_conn, klantnaam, f"GET Requests succesvol afgerond voor divisie: {division_name} ({division_code})")
                 logging_conn.close()
 
         # Pre-actie logging
