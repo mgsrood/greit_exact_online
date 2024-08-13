@@ -153,7 +153,7 @@ if __name__ == "__main__":
     # Verbindingsinstellingen
     server = os.getenv('SERVER')
     database = os.getenv('DATABASE')
-    username = os.getenv('USERNAME')
+    username = os.getenv('GEBRUIKERSNAAM')
     password = os.getenv('PASSWORD')
     driver = '{ODBC Driver 17 for SQL Server}'
 
