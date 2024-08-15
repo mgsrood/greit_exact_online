@@ -166,15 +166,9 @@ if __name__ == "__main__":
     if logging_conn:
         cursor = logging_conn.cursor()
         logging(cursor, logging_conn, klantnaam, f"Script gestart")
-        logging_conn.close()
-
-    # Pre-actie logging
-    logging_conn = connect_to_database(finn_it_connection_string)
-    if logging_conn:
-        cursor = logging_conn.cursor()
         logging(cursor, logging_conn, klantnaam, f"Ophalen connectiestrings gestart")
         logging_conn.close()
-    
+
     # Verbinding maken met database
     database_conn = connect_to_database(finn_it_connection_string)
     if database_conn:
