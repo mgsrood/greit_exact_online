@@ -145,7 +145,8 @@ GrootboekMutatiesTyping = {
     'Valuta': 'nvarchar',
     'Bedrag': 'decimal',
     'BTWBedrag': 'decimal',
-    'BTWPercentage': 'decimal'
+    'BTWPercentage': 'decimal',
+    'Type': 'int',
 }
 
 

@@ -44,7 +44,8 @@ GrootboekMutaties = {
     'Currency': 'Valuta',
     'AmountDC': 'Bedrag',
     'AmountVATFC': 'BTWBedrag',
-    'VATPercentage': 'BTWPercentage'
+    'VATPercentage': 'BTWPercentage',
+    'Type': 'Type',
 }
 
 GrootboekRubriek = {
@@ -141,7 +142,7 @@ ReportingBalance = {
     'CostUnitDescription': 'KostenDrager',
     'Count': 'AantalMutaties',
     'Division': 'AdministratieCode',
-    'GLAccount': 'GrootboekRubriekID',
+    'GLAccount': 'GrootboekID',
     'ReportingPeriod': 'ReportingPeriod',
     'ReportingYear': 'ReportingYear'
 }
