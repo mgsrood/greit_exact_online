@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Navigeer naar de map van de Git-repository
-cd /Users/maxrood/werk/greit/klanten/finn_it_intern
+cd /Users/maxrood/werk/greit/klanten/finn_it/intern
 
 # Pull the changes
 git pull origin main
