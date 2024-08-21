@@ -117,7 +117,7 @@ GrootboekMappingTyping = {
 ReportingBalanceTyping = {
     'ID': 'int',
     'AdministratieCode': 'int',
-    'GrootboekRubriekID': 'nvarchar',
+    'GrootboekID': 'nvarchar',
     'ReportingPeriod': 'int',
     'ReportingYear': 'int',
     'AantalMutaties': 'int',
