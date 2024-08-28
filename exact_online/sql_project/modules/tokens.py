@@ -22,13 +22,6 @@ def get_new_tokens(refresh_token, client_id, client_secret, finn_it_connection_s
 
     # Request maken om een nieuwe access token te verkrijgen
     response = requests.post(token_url, data=payload, headers=headers)
-    
-    # Pre-logging actie
-    logging_conn = connect_to_database(finn_it_connection_string)
-    if logging_conn:
-        cursor = logging_conn.cursor()
-        logging(cursor, logging_conn, klantnaam, f"Ophalen configuratiegegevens")
-        logging_conn.close()
 
     # Controleren of het verzoek succesvol was
     if response.status_code == 200:
@@ -41,7 +34,6 @@ def get_new_tokens(refresh_token, client_id, client_secret, finn_it_connection_s
         # Als het verzoek niet succesvol was, print de foutmelding
         print("Fout bij het vernieuwen van het toegangstoken:", response.text)
         return None, None
-
 
 def save_refresh_token(connection_string, new_refresh_token):
     # Verbinding maken met database voor ophalen refresh token

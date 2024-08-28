@@ -10,7 +10,7 @@ def fetch_all_connection_strings(cursor):
     rows = cursor.fetchall()
     
     # Extract de connectiestrings uit de resultaten
-    connection_dict = {row[1]: row[2] for row in rows}  
+    connection_dict = {row[1]: (row[2], row[3]) for row in rows}  
     return connection_dict
 
 def fetch_configurations(cursor):
@@ -37,7 +37,7 @@ def fetch_division_codes(cursor):
 
     return division_dict
 
-def save_laatste_sync(connection_string):
+def save_laatste_sync(connection_string, laatste_sync):
     # Verbinding maken met database voor ophalen laatste sync
     sync_conn = connect_to_database(connection_string)
     if sync_conn:
@@ -46,9 +46,6 @@ def save_laatste_sync(connection_string):
         # Query en uitvoering
         query = 'UPDATE Config SET Waarde = ? WHERE Config = ?'
         config = 'Laatste_sync'
-        now = datetime.now()
-        yesterday = now - timedelta(days=1)
-        laatste_sync = yesterday.strftime("%Y-%m-%dT%H:%M:%S")
         try:
             cursor.execute(query, (laatste_sync, config))
             sync_conn.commit()  # Maak de wijziging permanent
