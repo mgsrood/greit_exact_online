@@ -64,6 +64,7 @@ def write_to_database(df, tabel, connection_string, unique_column, division_colu
             if temp_table_name:
                 try:
                     connection.execute(text(f"DROP TABLE {temp_table_name}"))
+                    connection.commit()  # Forceer een commit na het verwijderen van de tabel
                     print(f"Tijdelijke tabel {temp_table_name} succesvol verwijderd.")
                 except Exception as e:
                     print(f"Fout bij het verwijderen van de tijdelijke tabel {temp_table_name}: {e}")
