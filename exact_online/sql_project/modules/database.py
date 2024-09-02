@@ -34,31 +34,39 @@ def write_to_database(df, tabel, connection_string, unique_column, division_colu
             cursor.fast_executemany = True
 
     with engine.connect() as connection:
-        if mode == 'none':
-            # Maak een unieke naam voor de tijdelijke fysieke tabel
-            temp_table_name = f"temp_table_{int(time.time())}"
-            
-            # Laad de data in de tijdelijke fysieke tabel
-            df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
+        temp_table_name = None
+        try:
+            if mode == 'none':
+                # Maak een unieke naam voor de tijdelijke fysieke tabel
+                temp_table_name = f"temp_table_{int(time.time())}"
+                
+                # Laad de data in de tijdelijke fysieke tabel
+                df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
 
-            # Gebruik daarna een MERGE-query om de data te synchroniseren met de doel-tabel
-            merge_query = f"""
-            MERGE {tabel} AS target
-            USING (SELECT * FROM {temp_table_name}) AS source
-            ON (target.{unique_column} = source.{unique_column} AND target.{division_column} = source.{division_column})
-            WHEN MATCHED THEN
-                UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in [unique_column, division_column]])}
-            WHEN NOT MATCHED THEN
-                INSERT ({', '.join(df.columns)})
-                VALUES ({', '.join([f'source.{col}' for col in df.columns])});
-            """
-            connection.execute(text(merge_query))
-
-            # Verwijder de tijdelijke fysieke tabel
-            connection.execute(text(f"DROP TABLE {temp_table_name}"))
-        else:
-            # Andere modes blijven ongewijzigd
-            df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
+                # Gebruik daarna een MERGE-query om de data te synchroniseren met de doel-tabel
+                merge_query = f"""
+                MERGE {tabel} AS target
+                USING (SELECT * FROM {temp_table_name}) AS source
+                ON (target.{unique_column} = source.{unique_column} AND target.{division_column} = source.{division_column})
+                WHEN MATCHED THEN
+                    UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in [unique_column, division_column]])}
+                WHEN NOT MATCHED THEN
+                    INSERT ({', '.join(df.columns)})
+                    VALUES ({', '.join([f'source.{col}' for col in df.columns])});
+                """
+                connection.execute(text(merge_query))
+            else:
+                # Andere modes blijven ongewijzigd
+                df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
+        except Exception as e:
+            print(f"Fout bij het toevoegen naar de database: {e}")
+        finally:
+            if temp_table_name:
+                try:
+                    connection.execute(text(f"DROP TABLE {temp_table_name}"))
+                    print(f"Tijdelijke tabel {temp_table_name} succesvol verwijderd.")
+                except Exception as e:
+                    print(f"Fout bij het verwijderen van de tijdelijke tabel {temp_table_name}: {e}")
 
     print(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {tabel}")
 
