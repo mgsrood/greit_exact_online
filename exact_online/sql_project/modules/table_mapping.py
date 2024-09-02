@@ -46,10 +46,10 @@ GrootboekMutaties = {
     'AmountVATFC': 'BTWBedrag',
     'VATPercentage': 'BTWPercentage',
     'Type': 'Type',
-    'KostenplaatsID': 'Costcenter',
-    'Kostenplaats': 'CostcenterDescription',
-    'KostenDragerID': 'Costunit',
-    'KostenDrager': 'CostunitDescription',
+    'CostCenter': 'KostenplaatsID',
+    'CostCenterDescription': 'Kostenplaats',
+    'CostUnit': 'KostenDragerID',
+    'CostUnitDescription': 'KostenDrager',
 }
 
 GrootboekRubriek = {
