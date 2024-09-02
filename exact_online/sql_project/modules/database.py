@@ -37,24 +37,39 @@ def write_to_database(df, tabel, connection_string, unique_column, division_colu
         temp_table_name = None
         try:
             if mode == 'none':
-                # Maak een unieke naam voor de tijdelijke fysieke tabel
-                temp_table_name = f"temp_table_{int(time.time())}"
-                
-                # Laad de data in de tijdelijke fysieke tabel
-                df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
+                # Controleer of laatste_sync meer dan een jaar geleden is
+                skip_merge = False
+                if laatste_sync:
+                    huidige_datum = datetime.now()
+                    laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
+                    verschil_in_jaren = (huidige_datum - laatste_sync_datum).days / 365
 
-                # Gebruik daarna een MERGE-query om de data te synchroniseren met de doel-tabel
-                merge_query = f"""
-                MERGE {tabel} AS target
-                USING (SELECT * FROM {temp_table_name}) AS source
-                ON (target.{unique_column} = source.{unique_column} AND target.{division_column} = source.{division_column})
-                WHEN MATCHED THEN
-                    UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in [unique_column, division_column]])}
-                WHEN NOT MATCHED THEN
-                    INSERT ({', '.join(df.columns)})
-                    VALUES ({', '.join([f'source.{col}' for col in df.columns])});
-                """
-                connection.execute(text(merge_query))
+                    if verschil_in_jaren > 1:
+                        skip_merge = True
+                        print(f"Laatste sync is meer dan een jaar geleden ({laatste_sync}), overschakelen naar simpele insert voor tabel: {tabel}")
+                
+                if skip_merge:
+                    # Schrijf direct naar de database toe
+                    df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
+                else:
+                    # Maak een unieke naam voor de tijdelijke fysieke tabel
+                    temp_table_name = f"temp_table_{int(time.time())}"
+                    
+                    # Laad de data in de tijdelijke fysieke tabel
+                    df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
+
+                    # Gebruik daarna een MERGE-query om de data te synchroniseren met de doel-tabel
+                    merge_query = f"""
+                    MERGE {tabel} AS target
+                    USING (SELECT * FROM {temp_table_name}) AS source
+                    ON (target.{unique_column} = source.{unique_column} AND target.{division_column} = source.{division_column})
+                    WHEN MATCHED THEN
+                        UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in [unique_column, division_column]])}
+                    WHEN NOT MATCHED THEN
+                        INSERT ({', '.join(df.columns)})
+                        VALUES ({', '.join([f'source.{col}' for col in df.columns])});
+                    """
+                    connection.execute(text(merge_query))
             else:
                 # Andere modes blijven ongewijzigd
                 df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
