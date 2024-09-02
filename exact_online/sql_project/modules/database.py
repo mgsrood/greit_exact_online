@@ -11,7 +11,6 @@ def connect_to_database(connection_string):
     for attempt in range(max_retries):
         try:
             conn = pyodbc.connect(connection_string)
-            conn.fast_executemany = True
             return conn
         except Exception as e:
             print(f"Fout bij poging {attempt + 1} om verbinding te maken: {e}")
