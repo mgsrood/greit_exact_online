@@ -147,6 +147,10 @@ GrootboekMutatiesTyping = {
     'BTWBedrag': 'decimal',
     'BTWPercentage': 'decimal',
     'Type': 'int',
+    'KostenplaatsID': 'nvarchar',
+    'Kostenplaats': 'nvarchar',
+    'KostenDragerID': 'nvarchar',
+    'KostenDrager': 'nvarchar',
 }
 
 
