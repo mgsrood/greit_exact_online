@@ -4,6 +4,7 @@ from datetime import datetime
 import sqlalchemy
 from sqlalchemy import create_engine, event, text
 import urllib
+from modules.logging import logging
 
 def connect_to_database(connection_string):
     # Retries en delays
@@ -47,7 +48,7 @@ def write_to_database(df, tabel, connection_string, unique_column, division_colu
                     if verschil_in_jaren > 1:
                         skip_merge = True
                         print(f"Laatste sync is meer dan een jaar geleden ({laatste_sync}), overschakelen naar simpele insert voor tabel: {tabel}")
-                
+                        logging(connection_string, tabel, f"Laatste sync is meer dan een jaar geleden ({laatste_sync}), overschakelen naar simpele insert voor tabel: {tabel}")
                 if skip_merge:
                     # Schrijf direct naar de database toe
                     df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
