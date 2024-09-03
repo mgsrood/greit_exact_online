@@ -380,7 +380,7 @@ if __name__ == "__main__":
                 # Table modes for deleting rows or complete table
                 table_modes = {
                     "Grootboekrekening": "none",
-                    "GrootboekRubriek": "none",
+                    "GrootboekRubriek": "truncate",
                     "GrootboekMutaties": "none",
                     "CrediteurenOpenstaand": "truncate",
                     "DebiteurenOpenstaand": "truncate",
