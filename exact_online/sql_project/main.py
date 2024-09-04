@@ -456,4 +456,4 @@ if __name__ == "__main__":
 
     # Succes logging
     print(f"Script volledig afgerond in {formatted_duration}")
-    logging(finn_it_connection_string, klantnaam, f"Script volledig afgerond in {formatted_duration}")
+    logging(finn_it_connection_string, "Finn It", f"Script volledig afgerond in {formatted_duration}")
