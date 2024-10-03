@@ -37,6 +37,18 @@ def fetch_division_codes(cursor):
 
     return division_dict
 
+def fetch_table_configurations(cursor):
+    query = 'SELECT * FROM TabellenConfig'
+    cursor.execute(query)
+
+    # Verkrijg alle rijen uit de resultaten
+    rows = cursor.fetchall()
+
+    # Maak een configuratie dictionary
+    table_config_dict = {row[1]: row[2] for row in rows}
+
+    return table_config_dict
+
 def save_laatste_sync(connection_string, laatste_sync):
     # Verbinding maken met database voor ophalen laatste sync
     sync_conn = connect_to_database(connection_string)

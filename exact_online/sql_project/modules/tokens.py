@@ -66,7 +66,7 @@ def save_access_token(connection_string, new_access_token):
         try:
             cursor.execute(query, (new_access_token, config))
             token_conn.commit()  # Maak de wijziging permanent
-            print("Refresh token succesvol bijgewerkt.")
+            print("Access token succesvol bijgewerkt.")
         except Exception as e:
             print(f"Fout bij uitvoeren van de query: {e}")
             token_conn.rollback()  # Rollback in geval van een fout

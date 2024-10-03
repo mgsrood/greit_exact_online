@@ -66,13 +66,9 @@ def get_request(division_code, url, endpoint):
     }
 
     response = requests.request("GET", f"{url}{endpoint}", headers=headers, data=payload)
-
+    print(response.status_code)
     # Controleer of de request succesvol was
     if response.status_code == 200:
-        # Print de raw API response
-        print("Raw API response:")
-        print(response.text)
-
         # Parse de XML-response
         root = ET.fromstring(response.content)
         data = []
@@ -151,9 +147,52 @@ if __name__ == "__main__":
     
     # Define url and endpoint
     url = f"https://start.exactonline.nl/api/v1/{division_code}"
-    endpoint = "/payroll/Employees?$select=FullName,Nationality,BusinessEmail"
+    endpoint = "/SalesOrder/SalesOrders?$filter=Modified ge datetime'2019-01-01'&$select=ApprovalStatusDescription,Approved,ApproverFullName,Created,CreatorFullName,Currency,DeliverTo,Description,Division,InvoiceStatusDescription,InvoiceTo,OrderDate,OrderedBy,OrderID,OrderNumber,Remarks,ShippingMethodDescription,StatusDescription,YourRef,SalesOrderLines/AmountDC,SalesOrderLines/CostCenterDescription,SalesOrderLines/CostPriceFC,SalesOrderLines/CostUnitDescription,SalesOrderLines/DeliveryDate,SalesOrderLines/Description,SalesOrderLines/Discount,SalesOrderLines/ID,SalesOrderLines/Item,SalesOrderLines/LineNumber,SalesOrderLines/Quantity,SalesOrderLines/VATAmount,SalesOrderLines/VATPercentage&$expand=SalesOrderLines"
 
     df = get_request(division_code, url, endpoint)
     if df is not None:
-        print(df)
+        # Een lege rij voor alle orderregels
+        orderregels = []
+
+        # Variabele om de laatste ordergegevens bij te houden
+        huidige_order = {}
+
+        # Itereer door de rijen van de dataset
+        for index, row in df.iterrows():
+            if pd.notna(row['OrderID']):
+                # Dit is een order, sla de relevante gegevens op
+                huidige_order = {
+                    'ApprovalStatusDescription': row['ApprovalStatusDescription'],
+                    'Approved': row['Approved'],
+                    'ApproverFullName': row['ApproverFullName'],
+                    'Created': row['Created'],
+                    'CreatorFullName': row['CreatorFullName'],
+                    'Currency': row['Currency'],
+                    'DeliverTo': row['DeliverTo'],
+                    'Description': row['Description'],
+                    'Division': row['Division'],
+                    'InvoiceStatusDescription': row['InvoiceStatusDescription'],
+                    'InvoiceTo': row['InvoiceTo'],
+                    'OrderDate': row['OrderDate'],
+                    'OrderedBy': row['OrderedBy'],
+                    'OrderID': row['OrderID'],
+                    'OrderNumber': row['OrderNumber'],
+                    'Remarks': row['Remarks'],
+                    'ShippingMethodDescription': row['ShippingMethodDescription'],
+                    'StatusDescription': row['StatusDescription'],
+                    'YourRef': row['YourRef']
+                }
+            else:
+                # Dit is een orderregel, voeg de ordergegevens toe en sla op
+                orderregel = row.copy()  # Kopieer de huidige orderregel
+                for key, value in huidige_order.items():
+                    orderregel[key] = value  # Voeg de ordergegevens toe aan de orderregel
+                orderregels.append(orderregel)
+        
+        # Maak een DataFrame van de orderregels
+        df = pd.DataFrame(orderregels)
+
+        # Show all columns in terminal
+        pd.set_option('display.max_columns', None)
+        print(df.head(20))
         export_to_csv(df, "test_data.csv")

@@ -44,7 +44,7 @@ def write_to_database(df, tabel, connection_string, unique_column, division_colu
                     laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
                     verschil_in_jaren = (huidige_datum - laatste_sync_datum).days / 365
 
-                    if verschil_in_jaren > 1:
+                    if verschil_in_jaren > 1.2:
                         skip_merge = True
                         print(f"Laatste sync is meer dan een jaar geleden ({laatste_sync}), overschakelen naar simpele insert voor tabel: {tabel}")
                 if skip_merge:

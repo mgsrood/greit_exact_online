@@ -1,6 +1,7 @@
 import pandas as pd
 import uuid
 from decimal import Decimal
+import numpy as np
 
 CrediteurenOpenstaandTyping = {
     'ID': 'int',
@@ -153,8 +154,218 @@ GrootboekMutatiesTyping = {
     'KostenDrager': 'nvarchar',
 }
 
+VoorraadTyping = {
+    'ID': 'uniqueidentifier',
+    'HuidigeVoorraad': 'decimal',
+    'AdministratieCode': 'int',
+    'ArtikelID': 'nvarchar',
+    'ArtikelEindDatum': 'date',
+    'ArtikelStartDatum': 'date',
+    'ArtikelEenheid': 'nvarchar',
+    'ArtikelEenheidOmschrijving': 'nvarchar',
+    'MaximaleVoorraad': 'decimal',
+    'GeplandeInkomendeVoorraad': 'decimal',
+    'GeplandeUitgaandeVoorraad': 'decimal',
+    'VerwachteVoorraad': 'decimal',
+    'GereserveerdeVoorraad': 'decimal',
+    'Veiligheidsvoorraad': 'decimal',
+    'MagazijnID': 'nvarchar',
+    'MagazijnCode': 'nvarchar',
+    'MagazijnOmschrijving': 'nvarchar',
+}
+
+ArtikelenTyping = {
+    'ID': 'uniqueidentifier',
+    'StandaardVerkoopprijs': 'decimal',
+    'Categorie1': 'nvarchar',
+    'Categorie2': 'nvarchar',
+    'Categorie3': 'nvarchar',
+    'Categorie4': 'nvarchar',
+    'Categorie5': 'nvarchar',
+    'Categorie6': 'nvarchar',
+    'Categorie7': 'nvarchar',
+    'Categorie8': 'nvarchar',
+    'Categorie9': 'nvarchar',
+    'Categorie10': 'nvarchar',
+    'Artikelcode': 'nvarchar',
+    'Valuta': 'nvarchar',
+    'NieuweKostprijs': 'decimal',
+    'StandaardKostprijs': 'decimal',
+    'GemiddeldeKostprijs': 'decimal',
+    'AangemaaktOp': 'date',
+    'Artikelomschrijving': 'nvarchar',
+    'AdministratieCode': 'int',
+    'Einddatum': 'date',
+    'ExtraOmschrijving': 'nvarchar',
+    'VrijBooleanVeld1': 'bit',
+    'VrijBooleanVeld2': 'bit',
+    'VrijBooleanVeld3': 'bit',
+    'VrijBooleanVeld4': 'bit',
+    'VrijBooleanVeld5': 'bit',
+    'VrijDatumVeld1': 'date',
+    'VrijDatumVeld2': 'date',
+    'VrijDatumVeld3': 'date',
+    'VrijDatumVeld4': 'date',
+    'VrijDatumVeld5': 'date',
+    'VrijNummerVeld1': 'decimal',
+    'VrijNummerVeld2': 'decimal',
+    'VrijNummerVeld3': 'decimal',
+    'VrijNummerVeld4': 'decimal',
+    'VrijNummerVeld5': 'decimal',
+    'VrijNummerVeld6': 'decimal',
+    'VrijNummerVeld7': 'decimal',
+    'VrijNummerVeld8': 'decimal',
+    'VrijTekstVeld1': 'nvarchar',
+    'VrijTekstVeld2': 'nvarchar',
+    'VrijTekstVeld3': 'nvarchar',
+    'VrijTekstVeld4': 'nvarchar',
+    'VrijTekstVeld5': 'nvarchar',
+    'VrijTekstVeld6': 'nvarchar',
+    'VrijTekstVeld7': 'nvarchar',
+    'VrijTekstVeld8': 'nvarchar',
+    'VrijTekstVeld9': 'nvarchar',
+    'VrijTekstVeld10': 'nvarchar',
+    'Artikelgroep': 'nvarchar',
+    'IsMaakartikel': 'tinyint',
+    'IsNieuwContract': 'tinyint',
+    'IsOpAanvraagArtikel': 'tinyint',
+    'IsVerpakkingArtikel': 'bit',
+    'IsInkoopArtikel': 'bit',
+    'IsVerkoopArtikel': 'bit',
+    'IsSerieArtikel': 'bit',
+    'IsVoorraadArtikel': 'bit',
+    'IsOnderaannemerArtikel': 'bit',
+    'IsBelastingArtikel': 'tinyint',
+    'IsTijdArtikel': 'tinyint',
+    'IsWebshopArtikel': 'tinyint',
+    'BrutoGewicht': 'decimal',
+    'NettoGewicht': 'decimal',
+    'NettoGewichtEenheid': 'nvarchar',
+    'Notities': 'nvarchar',
+    'BTWcode': 'nvarchar',
+    'BTWcodeBeschrijving': 'nvarchar',
+    'Beveiligingsniveau': 'int',
+    'Startdatum': 'date',
+    'GoederenCode': 'nvarchar',
+    'Eenheid': 'nvarchar',
+    'EenheidBeschrijving': 'nvarchar',
+    'EenheidType': 'nvarchar',
+}
+
+ArtikelenExtraVeldenTyping = {
+    'ArtikelID': 'nvarchar',
+    'GewijzigdOp': 'date',
+    'Nummer': 'int',
+    'Omschrijving': 'nvarchar',
+    'Waarde': 'nvarchar',
+    'AdministratieCode': 'int',
+}
+
+ArtikelGroepenTyping = {
+    'ID': 'uniqueidentifier',
+    'Code': 'nvarchar',
+    'Omschrijving': 'nvarchar',
+    'AdministratieCode': 'int',
+}
+
+VerkoopfacturenTyping = {
+    'F_Valuta': 'nvarchar',
+    'F_VersturenNaarID': 'nvarchar',
+    'F_Omschrijving': 'nvarchar',
+    'F_AdministratieCode': 'int',
+    'F_Factuurdatum': 'date',
+    'F_FactuurID': 'nvarchar',
+    'F_Factuurnummer': 'int',
+    'F_FactuurNaarID': 'nvarchar',
+    'F_Orderdatum': 'date',
+    'F_BesteldDoorID': 'nvarchar',
+    'F_BetaalconditieBeschrijving': 'nvarchar',
+    'F_Opmerkingen': 'nvarchar',
+    'F_VerzendmethodeBeschrijving': 'nvarchar',
+    'F_StatusBeschrijving': 'nvarchar',
+    'F_UwReferentie': 'nvarchar',
+    'F_StartVerkoopfactuurStatus': 'nvarchar',
+    'FR_Bedrag': 'decimal',
+    'FR_Kostenplaats': 'nvarchar',
+    'FR_Kostendrager': 'nvarchar',
+    'FR_Leverdatum': 'date',
+    'FR_Omschrijving': 'nvarchar',
+    'FR_Korting': 'decimal',
+    'FR_WerknemerNaam': 'nvarchar',
+    'FR_GrootboekrekeningID': 'nvarchar',
+    'FR_FactuurregelID': 'uniqueidentifier',
+    'FR_ArtikelID': 'nvarchar',
+    'FR_Regelnummer': 'int',
+    'FR_Aantal': 'decimal',
+    'FR_VerkooporderID': 'nvarchar',
+    'FR_VerkooporderRegelID': 'nvarchar',
+    'FR_EenheidBeschrijving': 'nvarchar',
+    'FR_Eenheidsprijs': 'decimal',
+    'FR_BTWBedrag': 'decimal',
+    'FR_BTWPercentage': 'decimal',
+}
+
+VerkoopordersTyping = {
+    'O_ApprovalStatusBeschrijving': 'nvarchar',
+    'O_Goedgekeurd': 'date',
+    'O_GoedgekeurdDoorNaam': 'nvarchar',
+    'O_Aangemaakt': 'date',
+    'O_AangemaaktDoorNaam': 'nvarchar',
+    'O_Valuta': 'nvarchar',
+    'O_VersturenNaarID': 'nvarchar',
+    'O_Omschrijving': 'nvarchar',
+    'O_AdministratieCode': 'int',
+    'O_FactuurStatusBeschrijving': 'nvarchar',
+    'O_FactuurNaarID': 'nvarchar',
+    'O_Orderdatum': 'date',
+    'O_BesteldDoorNaam': 'nvarchar',
+    'O_OrderID': 'nvarchar',
+    'O_Ordernummer': 'int',
+    'O_Opmerkingen': 'nvarchar',
+    'O_VerzendmethodeBeschrijving': 'nvarchar',
+    'O_StatusBeschrijving': 'nvarchar',
+    'O_UwReferentie': 'nvarchar',
+    'OR_Bedrag': 'decimal',
+    'OR_Kostenplaats': 'nvarchar',
+    'OR_Kostprijs': 'decimal',
+    'OR_Kostendrager': 'nvarchar',
+    'OR_Leverdatum': 'date',
+    'OR_Omschrijving': 'nvarchar',
+    'OR_Korting': 'decimal',
+    'OR_OrderRegelID': 'uniqueidentifier',
+    'OR_ArtikelID': 'nvarchar',
+    'OR_Regelnummer': 'int',
+    'OR_Aantal': 'decimal',
+    'OR_BTWBedrag': 'decimal',
+    'OR_BTWPercentage': 'decimal',
+}
+
+VerkoopkansenTyping = {
+    'VerkoopkansID': 'uniqueidentifier',
+    'AccountID': 'nvarchar',
+    'Actiedatum': 'date',
+    'Bedrag': 'decimal',
+    'Sluitingsdatum': 'date',
+    'Aangemaakt': 'date',
+    'AangemaaktDoorNaam': 'nvarchar',
+    'Valuta': 'nvarchar',
+    'AdministratieCode': 'int',
+    'Naam': 'nvarchar',
+    'FaseBeschrijving': 'nvarchar',
+    'Status': 'int',
+    'Kans': 'decimal',
+    'EigenaarNaam': 'nvarchar',
+    'VerkooptypeBeschrijving': 'nvarchar',
+    'RedenBeschrijving': 'nvarchar',
+    'CampagneBeschrijving': 'nvarchar',
+    'LeadBronBeschrijving': 'nvarchar',
+    'ContactpersoonNaam': 'nvarchar',
+}
+
 
 def convert_column_types(df, column_types):
+    pd.set_option('future.no_silent_downcasting', True)
+    
     for column, dtype in column_types.items():
         if column in df.columns:
             try:
@@ -179,6 +390,9 @@ def convert_column_types(df, column_types):
                     df[column] = df[column].astype(bool)
                 elif dtype == 'date':
                     df[column] = pd.to_datetime(df[column], errors='coerce').dt.date
+                elif dtype == 'tinyint':
+                    # Vul NaN/None met 0 voordat de conversie plaats vind
+                    df[column] = df[column].fillna(0).infer_objects(copy=False).astype(np.uint8)
                 else:
                     raise ValueError(f"Onbekend datatype '{dtype}' voor kolom '{column}'.")
             except ValueError as e:
