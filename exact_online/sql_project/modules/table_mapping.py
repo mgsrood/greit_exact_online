@@ -302,7 +302,7 @@ Verkoopfacturen = {
     'VATPercentage': 'FR_BTWPercentage'
 }
 
-Verkooporders = {
+VerkoopOrders = {
     'ApprovalStatusDescription': 'O_ApprovalStatusBeschrijving',
     'Approved': 'O_Goedgekeurd',
     'ApproverFullName': 'O_GoedgekeurdDoorNaam',

@@ -9,8 +9,8 @@ from modules.logging import logging
 from modules.config import fetch_all_connection_strings, fetch_configurations, fetch_division_codes, save_laatste_sync, save_reporting_year, fetch_table_configurations
 from modules.tokens import get_new_tokens, save_refresh_token, save_access_token
 from modules.database import connect_to_database, write_to_database, clear_table
-from modules.type_mapping import convert_column_types, CrediteurenOpenstaandTyping, DebiteurenOpenstaandTyping, GrootboekRubriekTyping, GrootboekrekeningTyping, RelatiesTyping, RelatieKetenTyping, BudgetTyping, GrootboekMappingTyping, ReportingBalanceTyping, GrootboekMutatiesTyping, VoorraadTyping, ArtikelenTyping, ArtikelenExtraVeldenTyping, ArtikelGroepenTyping, VerkoopfacturenTyping, VerkoopordersTyping, VerkoopkansenTyping
-from modules.table_mapping import transform_columns, CrediteurenOpenstaand, DebiteurenOpenstaand, GrootboekMutaties, GrootboekRubriek, Grootboekrekening, Relaties, RelatieKeten, Budget, GrootboekMapping, ReportingBalance, Voorraad, Artikelen, ArtikelenExtraVelden, ArtikelGroepen, Verkoopfacturen, Verkooporders, Verkoopkansen
+from modules.type_mapping import convert_column_types, CrediteurenOpenstaandTyping, DebiteurenOpenstaandTyping, GrootboekRubriekTyping, GrootboekrekeningTyping, RelatiesTyping, RelatieKetenTyping, BudgetTyping, GrootboekMappingTyping, ReportingBalanceTyping, GrootboekMutatiesTyping, VoorraadTyping, ArtikelenTyping, ArtikelenExtraVeldenTyping, ArtikelGroepenTyping, VerkoopfacturenTyping, VerkoopkansenTyping, VerkoopOrdersTyping
+from modules.table_mapping import transform_columns, CrediteurenOpenstaand, DebiteurenOpenstaand, GrootboekMutaties, GrootboekRubriek, Grootboekrekening, Relaties, RelatieKeten, Budget, GrootboekMapping, ReportingBalance, Voorraad, Artikelen, ArtikelenExtraVelden, ArtikelGroepen, Verkoopfacturen, VerkoopOrders, Verkoopkansen
 from modules.data_transformation import append_invoice_lines, append_order_lines
 import xml.etree.ElementTree as ET
 import pandas as pd
@@ -77,32 +77,58 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 
         # Controleer of de request succesvol was
         if response.status_code == 200:
-
             # Reinig de XML response van ongewenste tekens
             cleaned_response = clean_xml_string(response.text)
             
             # Parse de XML-response
             root = ET.fromstring(cleaned_response)
+
+            # Namespace instellen
+            namespace = {'ns': 'http://schemas.microsoft.com/ado/2007/08/dataservices'}
+
+            # Check voor ArtikelenExtraVelden
+            if tabel == 'ArtikelenExtraVelden':
+                print("Start ArtikelenExtraVelden")
+                # Loop door elk <element> en haal de data op
+                for entry in root.findall('.//ns:element', namespace):
+                    item_data = {
+                        'ItemID': entry.find('ns:ItemID', namespace).text.strip() if entry.find('ns:ItemID', namespace) is not None else None,
+                        'Modified': entry.find('ns:Modified', namespace).text.strip() if entry.find('ns:Modified', namespace) is not None else None,
+                        'Number': entry.find('ns:Number', namespace).text.strip() if entry.find('ns:Number', namespace) is not None else None,
+                        'Description': entry.find('ns:Description', namespace).text.strip() if entry.find('ns:Description', namespace) is not None else None,
+                        'Value': entry.find('ns:Value', namespace).text.strip() if entry.find('ns:Value', namespace) is not None else None
+                    }
+                    data.append(item_data)
+                    total_rows += 1                
+
+                # Kijk of er een volgende pagina is
+                next_link = root.find('.//{http://www.w3.org/2005/Atom}link[@rel="next"]')
+                full_url = next_link.attrib['href'] if next_link is not None else None
+
+                # Wacht 1 seconde voordat je de volgende request doet
+                print(f"Totaal aantal opgehaalde rijen: {total_rows}")
+                time.sleep(1)
+
+            else:
+                # Loop door elk <entry> element en haal de data op
+                for entry in root.findall('.//{http://www.w3.org/2005/Atom}entry'):
+                    item_data = {}
+                    for prop in entry.findall('.//{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}properties/*'):
+                        if prop.text is not None:
+                            item_data[prop.tag.replace('{http://schemas.microsoft.com/ado/2007/08/dataservices}', '')] = prop.text.strip()
+                        else:
+                            item_data[prop.tag.replace('{http://schemas.microsoft.com/ado/2007/08/dataservices}', '')] = None
+                    data.append(item_data)
+                    total_rows += 1
+
+                # Kijk of er een volgende pagina is
+                next_link = root.find('.//{http://www.w3.org/2005/Atom}link[@rel="next"]')
+                full_url = next_link.attrib['href'] if next_link is not None else None
+
+                # Wacht 1 seconde voordat je de volgende request doet
+                print(f"Opgehaalde rijen tot nu toe: {total_rows}")
+                time.sleep(1)
             
-            # Loop door elk <entry> element en haal de data op
-            for entry in root.findall('.//{http://www.w3.org/2005/Atom}entry'):
-                item_data = {}
-                for prop in entry.findall('.//{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}properties/*'):
-                    if prop.text is not None:
-                        item_data[prop.tag.replace('{http://schemas.microsoft.com/ado/2007/08/dataservices}', '')] = prop.text.strip()
-                    else:
-                        item_data[prop.tag.replace('{http://schemas.microsoft.com/ado/2007/08/dataservices}', '')] = None
-                data.append(item_data)
-                total_rows += 1
-
-            # Kijk of er een volgende pagina is
-            next_link = root.find('.//{http://www.w3.org/2005/Atom}link[@rel="next"]')
-            full_url = next_link.attrib['href'] if next_link is not None else None
-
-            # Wacht 1 seconde voordat je de volgende request doet
-            print(f"Opgehaalde rijen tot nu toe: {total_rows}")
-            time.sleep(1)
-        
         else:
             if response.status_code == 401:
                 print(f"Fout bij het ophalen van gegevens: {response.status_code} - {response.text}")
@@ -332,12 +358,12 @@ if __name__ == "__main__":
                         print("Reset sync")
                         logging(finn_it_connection_string, klantnaam, f"Reset sync voor divisie: {division_name} ({division_code}) | {klantnaam}")
                         endpoints = {
+                            "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
                             "Grootboekrekening": f"bulk/financial/GLAccounts?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,BalanceSide,BalanceType,Code,Costcenter,CostcenterDescription,Costunit,CostunitDescription,Description,Division,Type,TypeDescription",
                             "Artikelen": f"bulk/Logistics/Items?&$select=ID,StandardSalesPrice,Class_01,Class_02,Class_03,Class_04,Class_05,Class_06,Class_07,Class_08,Class_09,Class_10,Code,CostPriceCurrency,CostPriceNew,CostPriceStandard,AverageCost,Created,Description,Division,EndDate,ExtraDescription,FreeBoolField_01,FreeBoolField_02,FreeBoolField_03,FreeBoolField_04,FreeBoolField_05,FreeDateField_01,FreeDateField_02,FreeDateField_03,FreeDateField_04,FreeDateField_05,FreeNumberField_01,FreeNumberField_02,FreeNumberField_03,FreeNumberField_04,FreeNumberField_05,FreeNumberField_06,FreeNumberField_07,FreeNumberField_08,FreeTextField_01,FreeTextField_02,FreeTextField_03,FreeTextField_04,FreeTextField_05,FreeTextField_06,FreeTextField_07,FreeTextField_08,FreeTextField_09,FreeTextField_10,ItemGroup,IsMakeItem,IsNewContract,IsOnDemandItem,IsPackageItem,IsPurchaseItem,IsSalesItem,IsSerialItem,IsStockItem,IsSubcontractedItem,IsTaxableItem,IsTime,IsWebshopItem,GrossWeight,NetWeight,NetWeightUnit,Notes,SalesVatCode,SalesVatCodeDescription,SecurityLevel,StartDate,StatisticalCode,Unit,UnitDescription,UnitType",
                             "ReportingBalance": f"financial/ReportingBalance?$filter=ReportingYear ge {reporting_year}&$select=ID,Amount,AmountCredit,AmountDebit,BalanceType,CostCenterDescription,CostUnitDescription,Count,Division,GLAccount,ReportingPeriod,ReportingYear",
-                            "Verkooporders": f"bulk/SalesOrder/SalesOrders?&$select=ApprovalStatusDescription,Approved,ApproverFullName,Created,CreatorFullName,Currency,DeliverTo,Description,Division,InvoiceStatusDescription,InvoiceTo,OrderDate,OrderedBy,OrderID,OrderNumber,Remarks,ShippingMethodDescription,StatusDescription,YourRef,SalesOrderLines/AmountDC,SalesOrderLines/CostCenterDescription,SalesOrderLines/CostPriceFC,SalesOrderLines/CostUnitDescription,SalesOrderLines/DeliveryDate,SalesOrderLines/Description,SalesOrderLines/Discount,SalesOrderLines/ID,SalesOrderLines/Item,SalesOrderLines/LineNumber,SalesOrderLines/Quantity,SalesOrderLines/VATAmount,SalesOrderLines/VATPercentage&$expand=SalesOrderLines",
+                            "VerkoopOrders": f"bulk/SalesOrder/SalesOrders?&$select=ApprovalStatusDescription,Approved,ApproverFullName,Created,CreatorFullName,Currency,DeliverTo,Description,Division,InvoiceStatusDescription,InvoiceTo,OrderDate,OrderedBy,OrderID,OrderNumber,Remarks,ShippingMethodDescription,StatusDescription,YourRef,SalesOrderLines/AmountDC,SalesOrderLines/CostCenterDescription,SalesOrderLines/CostPriceFC,SalesOrderLines/CostUnitDescription,SalesOrderLines/DeliveryDate,SalesOrderLines/Description,SalesOrderLines/Discount,SalesOrderLines/ID,SalesOrderLines/Item,SalesOrderLines/LineNumber,SalesOrderLines/Quantity,SalesOrderLines/VATAmount,SalesOrderLines/VATPercentage&$expand=SalesOrderLines",
                             "Verkoopfacturen": f"bulk/SalesInvoice/SalesInvoices?&&$select=Currency,DeliverTo,Description,Division,InvoiceDate,InvoiceID,InvoiceNumber,InvoiceTo,OrderDate,OrderedBy,PaymentConditionDescription,Remarks,ShippingMethodDescription,StatusDescription,YourRef,StarterSalesInvoiceStatusDescription,SalesInvoiceLines/AmountDC,SalesInvoiceLines/CostCenterDescription,SalesInvoiceLines/CostUnitDescription,SalesInvoiceLines/DeliveryDate,SalesInvoiceLines/Description,SalesInvoiceLines/Description,SalesInvoiceLines/Discount,SalesInvoiceLines/EmployeeFullName,SalesInvoiceLines/GLAccount,SalesInvoiceLines/ID,SalesInvoiceLines/Item,SalesInvoiceLines/LineNumber,SalesInvoiceLines/Quantity,SalesInvoiceLines/SalesOrder,SalesInvoiceLines/SalesOrderLine,SalesInvoiceLines/UnitDescription,SalesInvoiceLines/UnitPrice,SalesInvoiceLines/VATAmountDC,SalesInvoiceLines/VATPercentage&$expand=SalesInvoiceLines",
-                            "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
                             "Voorraad": f"inventory/ItemWarehouses?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,CurrentStock,Division,Item,ItemEndDate,ItemStartDate,ItemUnit,ItemUnitDescription,MaximumStock,PlannedStockIn,PlannedStockOut,ProjectedStock,ReservedStock,SafetyStock,Warehouse,WarehouseCode,WarehouseDescription",
                             "ArtikelGroepen": f"logistics/ItemGroups?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,Code,Description,Division",
                             "Verkoopkansen": f"crm/Opportunities?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,Account,ActionDate,AmountDC,CloseDate,Created,CreatorFullName,Currency,Division,Name,OpportunityStageDescription,OpportunityStatus,Probability,OwnerFullName,SalesTypeDescription,ReasonCodeDescription,CampaignDescription,LeadSourceDescription,ContactFullName",
@@ -353,12 +379,12 @@ if __name__ == "__main__":
                     else:
                         print("Reguliere sync")
                         endpoints = {
+                            "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
                             "Grootboekrekening": f"bulk/financial/GLAccounts?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,BalanceSide,BalanceType,Code,Costcenter,CostcenterDescription,Costunit,CostunitDescription,Description,Division,Type,TypeDescription",
                             "Artikelen": f"Logistics/Items?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,StandardSalesPrice,Class_01,Class_02,Class_03,Class_04,Class_05,Class_06,Class_07,Class_08,Class_09,Class_10,Code,CostPriceCurrency,CostPriceNew,CostPriceStandard,AverageCost,Created,Description,Division,EndDate,ExtraDescription,FreeBoolField_01,FreeBoolField_02,FreeBoolField_03,FreeBoolField_04,FreeBoolField_05,FreeDateField_01,FreeDateField_02,FreeDateField_03,FreeDateField_04,FreeDateField_05,FreeNumberField_01,FreeNumberField_02,FreeNumberField_03,FreeNumberField_04,FreeNumberField_05,FreeNumberField_06,FreeNumberField_07,FreeNumberField_08,FreeTextField_01,FreeTextField_02,FreeTextField_03,FreeTextField_04,FreeTextField_05,FreeTextField_06,FreeTextField_07,FreeTextField_08,FreeTextField_09,FreeTextField_10,ItemGroup,IsMakeItem,IsNewContract,IsOnDemandItem,IsPackageItem,IsPurchaseItem,IsSalesItem,IsSerialItem,IsStockItem,IsSubcontractedItem,IsTaxableItem,IsTime,IsWebshopItem,GrossWeight,NetWeight,NetWeightUnit,Notes,SalesVatCode,SalesVatCodeDescription,SecurityLevel,StartDate,StatisticalCode,Unit,UnitDescription,UnitType",
                             "ReportingBalance": f"financial/ReportingBalance?$filter=ReportingYear ge {reporting_year}&$select=ID,Amount,AmountCredit,AmountDebit,BalanceType,CostCenterDescription,CostUnitDescription,Count,Division,GLAccount,ReportingPeriod,ReportingYear",
-                            "Verkooporders": f"SalesOrder/SalesOrders?$filter=Modified ge datetime'{laatste_sync}'&$select=ApprovalStatusDescription,Approved,ApproverFullName,Created,CreatorFullName,Currency,DeliverTo,Description,Division,InvoiceStatusDescription,InvoiceTo,OrderDate,OrderedBy,OrderID,OrderNumber,Remarks,ShippingMethodDescription,StatusDescription,YourRef,SalesOrderLines/AmountDC,SalesOrderLines/CostCenterDescription,SalesOrderLines/CostPriceFC,SalesOrderLines/CostUnitDescription,SalesOrderLines/DeliveryDate,SalesOrderLines/Description,SalesOrderLines/Discount,SalesOrderLines/ID,SalesOrderLines/Item,SalesOrderLines/LineNumber,SalesOrderLines/Quantity,SalesOrderLines/VATAmount,SalesOrderLines/VATPercentage&$expand=SalesOrderLines",
+                            "VerkoopOrders": f"SalesOrder/SalesOrders?$filter=Modified ge datetime'{laatste_sync}'&$select=ApprovalStatusDescription,Approved,ApproverFullName,Created,CreatorFullName,Currency,DeliverTo,Description,Division,InvoiceStatusDescription,InvoiceTo,OrderDate,OrderedBy,OrderID,OrderNumber,Remarks,ShippingMethodDescription,StatusDescription,YourRef,SalesOrderLines/AmountDC,SalesOrderLines/CostCenterDescription,SalesOrderLines/CostPriceFC,SalesOrderLines/CostUnitDescription,SalesOrderLines/DeliveryDate,SalesOrderLines/Description,SalesOrderLines/Discount,SalesOrderLines/ID,SalesOrderLines/Item,SalesOrderLines/LineNumber,SalesOrderLines/Quantity,SalesOrderLines/VATAmount,SalesOrderLines/VATPercentage&$expand=SalesOrderLines",
                             "Verkoopfacturen": f"SalesInvoice/SalesInvoices?$filter=Modified ge datetime'{laatste_sync}'&&$select=Currency,DeliverTo,Description,Division,InvoiceDate,InvoiceID,InvoiceNumber,InvoiceTo,OrderDate,OrderedBy,PaymentConditionDescription,Remarks,ShippingMethodDescription,StatusDescription,YourRef,StarterSalesInvoiceStatusDescription,SalesInvoiceLines/AmountDC,SalesInvoiceLines/CostCenterDescription,SalesInvoiceLines/CostUnitDescription,SalesInvoiceLines/DeliveryDate,SalesInvoiceLines/Description,SalesInvoiceLines/Description,SalesInvoiceLines/Discount,SalesInvoiceLines/EmployeeFullName,SalesInvoiceLines/GLAccount,SalesInvoiceLines/ID,SalesInvoiceLines/Item,SalesInvoiceLines/LineNumber,SalesInvoiceLines/Quantity,SalesInvoiceLines/SalesOrder,SalesInvoiceLines/SalesOrderLine,SalesInvoiceLines/UnitDescription,SalesInvoiceLines/UnitPrice,SalesInvoiceLines/VATAmountDC,SalesInvoiceLines/VATPercentage&$expand=SalesInvoiceLines",
-                            "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
                             "Voorraad": f"inventory/ItemWarehouses?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,CurrentStock,Division,Item,ItemEndDate,ItemStartDate,ItemUnit,ItemUnitDescription,MaximumStock,PlannedStockIn,PlannedStockOut,ProjectedStock,ReservedStock,SafetyStock,Warehouse,WarehouseCode,WarehouseDescription",
                             "ArtikelGroepen": f"logistics/ItemGroups?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,Code,Description,Division",
                             "Verkoopkansen": f"crm/Opportunities?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,Account,ActionDate,AmountDC,CloseDate,Created,CreatorFullName,Currency,Division,Name,OpportunityStageDescription,OpportunityStatus,Probability,OwnerFullName,SalesTypeDescription,ReasonCodeDescription,CampaignDescription,LeadSourceDescription,ContactFullName",
@@ -423,8 +449,8 @@ if __name__ == "__main__":
                                     logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het transformeren van verkoopfacturen: {e} | {division_name} ({division_code}) | {klantnaam}")
                                     print(e)
 
-                            # Data transformatie Verkooporders
-                            if tabel == "Verkooporders":
+                            # Data transformatie VerkoopOrders
+                            if tabel == "VerkoopOrders":
                                 # Start logging
                                 logging(finn_it_connection_string, klantnaam, f"Start van data transformatie verkooporders | {division_name} ({division_code}) | {klantnaam}")
 
@@ -461,7 +487,7 @@ if __name__ == "__main__":
                                 "ArtikelenExtraVelden": ArtikelenExtraVelden,
                                 "ArtikelGroepen": ArtikelGroepen,
                                 "Verkoopfacturen": Verkoopfacturen,
-                                "Verkooporders": Verkooporders,
+                                "VerkoopOrders": VerkoopOrders,
                                 "Verkoopkansen": Verkoopkansen
                             }
 
@@ -496,7 +522,7 @@ if __name__ == "__main__":
                                 "ArtikelenExtraVelden": ArtikelenExtraVeldenTyping,
                                 "ArtikelGroepen": ArtikelGroepenTyping,
                                 "Verkoopfacturen": VerkoopfacturenTyping,
-                                "Verkooporders": VerkoopordersTyping,
+                                "VerkoopOrders": VerkoopOrdersTyping,
                                 "Verkoopkansen": VerkoopkansenTyping
                             }
             
@@ -531,7 +557,7 @@ if __name__ == "__main__":
                                 "ArtikelenExtraVelden": "none",
                                 "ArtikelGroepen": "none",
                                 "Verkoopfacturen": "none",
-                                "Verkooporders": "none",
+                                "VerkoopOrders": "none",
                                 "Verkoopkansen": "none"
                             }
 
@@ -568,7 +594,7 @@ if __name__ == "__main__":
                                 "ArtikelenExtraVelden": "ArtikelID",
                                 "ArtikelGroepen": "ID",
                                 "Verkoopfacturen": "FR_FactuurregelID",
-                                "Verkooporders": "OR_OrderRegelID",
+                                "VerkoopOrders": "OR_OrderRegelID",
                                 "Verkoopkansen": "VerkoopkansID"
                             }
                             
@@ -597,7 +623,7 @@ if __name__ == "__main__":
                                 "ArtikelenExtraVelden": "AdministratieCode",
                                 "ArtikelGroepen": "AdministratieCode",
                                 "Verkoopfacturen": "F_AdministratieCode",
-                                "Verkooporders": "O_AdministratieCode",
+                                "VerkoopOrders": "O_AdministratieCode",
                                 "Verkoopkansen": "AdministratieCode"
                                 
                             }

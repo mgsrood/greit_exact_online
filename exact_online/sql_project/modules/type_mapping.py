@@ -305,7 +305,7 @@ VerkoopfacturenTyping = {
     'FR_BTWPercentage': 'decimal',
 }
 
-VerkoopordersTyping = {
+VerkoopOrdersTyping = {
     'O_ApprovalStatusBeschrijving': 'nvarchar',
     'O_Goedgekeurd': 'date',
     'O_GoedgekeurdDoorNaam': 'nvarchar',
