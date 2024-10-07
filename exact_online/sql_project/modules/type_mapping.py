@@ -381,6 +381,16 @@ def convert_column_types(df, column_types):
 
                     df[column] = df[column].apply(convert_to_uuid)
                 elif dtype == 'int':
+                    # Zet niet-numerieke waarden om naar NaN
+                    df[column] = pd.to_numeric(df[column], errors='coerce')
+                    invalid_values = df[column].isnull()
+                    
+                    # Specifieke ongeldige waarden printen
+                    if invalid_values.any():
+                        ongeldige_waarden = df[column][invalid_values].unique()
+                        print(f"Waarschuwing: {len(ongeldige_waarden)} ongeldige waarden gevonden in kolom '{column}': {ongeldige_waarden}, deze worden vervangen door 0.")
+                        df[column] = df[column].fillna(0)  # Vervang NaN door 0
+                    
                     df[column] = df[column].astype(int)
                 elif dtype == 'nvarchar':
                     df[column] = df[column].astype(str)
