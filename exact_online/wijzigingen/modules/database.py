@@ -24,7 +24,7 @@ def connect_to_database(connection_string):
     print("Kan geen verbinding maken met de database na meerdere pogingen.")
     return None
 
-def write_to_database(df, tabel, connection_string):
+def write_to_database(df, tabel, connection_string, unique_column, division_column, mode, laatste_sync):
     db_params = urllib.parse.quote_plus(connection_string)
     engine = create_engine(f"mssql+pyodbc:///?odbc_connect={db_params}")
 
@@ -33,52 +33,86 @@ def write_to_database(df, tabel, connection_string):
         if executemany:
             cursor.fast_executemany = True
 
-    with engine.connect() as connection:   
+    with engine.connect() as connection:
+        temp_table_name = None
         try:
-            # Andere modes blijven ongewijzigd
-            df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
+            if mode == 'none':
+                # Controleer of laatste_sync meer dan een jaar geleden is
+                skip_merge = False
+                if laatste_sync:
+                    huidige_datum = datetime.now()
+                    laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
+                    verschil_in_jaren = (huidige_datum - laatste_sync_datum).days / 365
+
+                    if verschil_in_jaren > 1.2:
+                        skip_merge = True
+                        print(f"Laatste sync is meer dan een jaar geleden ({laatste_sync}), overschakelen naar simpele insert voor tabel: {tabel}")
+                if skip_merge:
+                    # Schrijf direct naar de database toe
+                    df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
+                else:
+                    # Maak een unieke naam voor de tijdelijke fysieke tabel
+                    temp_table_name = f"temp_table_{int(time.time())}"
+                    
+                    # Laad de data in de tijdelijke fysieke tabel
+                    df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
+
+                    # Gebruik daarna een MERGE-query om de data te synchroniseren met de doel-tabel
+                    merge_query = f"""
+                    MERGE {tabel} AS target
+                    USING (SELECT * FROM {temp_table_name}) AS source
+                    ON (target.{unique_column} = source.{unique_column} AND target.{division_column} = source.{division_column})
+                    WHEN MATCHED THEN
+                        UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in [unique_column, division_column]])}
+                    WHEN NOT MATCHED THEN
+                        INSERT ({', '.join(df.columns)})
+                        VALUES ({', '.join([f'source.{col}' for col in df.columns])});
+                    """
+                    connection.execute(text(merge_query))
+            else:
+                # Andere modes blijven ongewijzigd
+                df.to_sql(tabel, engine, index=False, if_exists="append", schema="dbo")
         except Exception as e:
             print(f"Fout bij het toevoegen naar de database: {e}")
+        finally:
+            if temp_table_name:
+                try:
+                    connection.execute(text(f"DROP TABLE {temp_table_name}"))
+                    connection.commit()  # Forceer een commit na het verwijderen van de tabel
+                    print(f"Tijdelijke tabel {temp_table_name} succesvol verwijderd.")
+                except Exception as e:
+                    print(f"Fout bij het verwijderen van de tijdelijke tabel {temp_table_name}: {e}")
 
     print(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {tabel}")
 
-def clear_table(connection_string, table, mode, start_date, division_code):
+def clear_table(connection_string, table, mode, reporting_year, division_code):
     try:
         # Maak verbinding met de database
         connection = pyodbc.connect(connection_string)
         cursor = connection.cursor()
-        
         rows_deleted = 0
-        if mode == 'orders':
-            # Verwijder rijen waar Aangemaakt >= start_date en AdministratieCode = division_code
-            cursor.execute(f"DELETE FROM {table} WHERE O_Orderdatum >= ? AND O_AdministratieCode = ?", start_date, division_code)
-            rows_deleted = cursor.rowcount
-        elif mode == 'facturen':
-            # Verwijder rijen waar Aangemaakt >= start_date en AdministratieCode = division_code
-            cursor.execute(f"DELETE FROM {table} WHERE F_Factuurdatum >= ? AND F_AdministratieCode = ?", start_date, division_code)
-            rows_deleted = cursor.rowcount
-        elif mode == 'mutaties':
-            # Selecteer jaar uit start_date
-            jaar = start_date[:4]
-            print(jaar)
-            cursor.execute(f"DELETE FROM {table} WHERE Boekjaar >= ? AND AdministratieCode = ?", jaar, division_code)
+        
+        if mode == 'truncate':
+            # Probeer de tabel leeg te maken met TRUNCATE TABLE
+            try:
+                cursor.execute(f"DELETE FROM {table} WHERE AdministratieCode = ?", division_code)
+                rows_deleted = cursor.rowcount
+            except pyodbc.Error as e:
+                print(f"DELETE FROM {table} WHERE AdministratieCode = {division_code} failed: {e}")
+        elif mode == 'reporting_year':
+            # Verwijder rijen waar ReportingYear >= reporting_year en AdministratieCode = division_code
+            cursor.execute(f"DELETE FROM {table} WHERE ReportingYear >= ? AND AdministratieCode = ?", reporting_year, division_code)
             rows_deleted = cursor.rowcount
         elif mode == 'none':
             # Doe niets
             print(f"Geen actie ondernomen voor tabel {table}.")
-            actie = f"Geen actie ondernomen voor tabel {table}."
-        else:
-            actie = f"Ongeldige mode: {mode}"
-            print(actie)
-            return actie
         
         # Commit de transactie
         connection.commit()
-        print(f"Actie '{mode}' succesvol uitgevoerd voor tabel {table}. Rijen verwijderd: {rows_deleted}")
-        actie = f"Actie '{mode}' succesvol uitgevoerd voor tabel {table}. Rijen verwijderd: {rows_deleted}"
+        print(f"Actie '{mode}' succesvol uitgevoerd voor tabel {table}.")
+        actie = f"Actie '{mode}' succesvol uitgevoerd voor tabel {table}."
     except pyodbc.Error as e:
         print(f"Fout bij het uitvoeren van de actie '{mode}' voor tabel {table}: {e}")
-        actie = f"Fout bij het uitvoeren van de actie '{mode}' voor tabel {table}: {e}"
     finally:
         # Sluit de cursor en verbinding
         cursor.close()
