@@ -1,6 +1,16 @@
 from datetime import datetime, timedelta
 from modules.database import connect_to_database
 
+def fetch_script_id(cursor):
+    # Voer de query uit om het hoogste ScriptID op te halen
+    query = 'SELECT MAX(ScriptID) FROM Logging'
+    cursor.execute(query)
+    
+    # Verkrijg het resultaat
+    highest_script_id = cursor.fetchone()[0]
+
+    return highest_script_id
+
 def fetch_all_connection_strings(cursor):
     # Voer de query uit om alle connectiestrings op te halen
     query = 'SELECT * FROM Klanten'

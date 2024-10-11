@@ -90,16 +90,19 @@ def clear_table(connection_string, table, mode, reporting_year, division_code):
         # Maak verbinding met de database
         connection = pyodbc.connect(connection_string)
         cursor = connection.cursor()
+        rows_deleted = 0
         
         if mode == 'truncate':
             # Probeer de tabel leeg te maken met TRUNCATE TABLE
             try:
                 cursor.execute(f"DELETE FROM {table} WHERE AdministratieCode = ?", division_code)
+                rows_deleted = cursor.rowcount
             except pyodbc.Error as e:
                 print(f"DELETE FROM {table} WHERE AdministratieCode = {division_code} failed: {e}")
         elif mode == 'reporting_year':
             # Verwijder rijen waar ReportingYear >= reporting_year en AdministratieCode = division_code
             cursor.execute(f"DELETE FROM {table} WHERE ReportingYear >= ? AND AdministratieCode = ?", reporting_year, division_code)
+            rows_deleted = cursor.rowcount
         elif mode == 'none':
             # Doe niets
             print(f"Geen actie ondernomen voor tabel {table}.")
@@ -115,4 +118,4 @@ def clear_table(connection_string, table, mode, reporting_year, division_code):
         cursor.close()
         connection.close()
     
-    return actie
+    return actie, rows_deleted

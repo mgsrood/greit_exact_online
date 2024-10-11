@@ -6,7 +6,7 @@ import requests
 import re
 from datetime import datetime, timedelta
 from modules.logging import logging
-from modules.config import fetch_all_connection_strings, fetch_configurations, fetch_division_codes, save_laatste_sync, save_reporting_year, fetch_table_configurations
+from modules.config import fetch_all_connection_strings, fetch_configurations, fetch_division_codes, save_laatste_sync, save_reporting_year, fetch_table_configurations, fetch_script_id
 from modules.tokens import get_new_tokens, save_refresh_token, save_access_token
 from modules.database import connect_to_database, write_to_database, clear_table
 from modules.type_mapping import convert_column_types, CrediteurenOpenstaandTyping, DebiteurenOpenstaandTyping, GrootboekRubriekTyping, GrootboekrekeningTyping, RelatiesTyping, RelatieKetenTyping, BudgetTyping, GrootboekMappingTyping, ReportingBalanceTyping, GrootboekMutatiesTyping, VoorraadTyping, ArtikelenTyping, ArtikelenExtraVeldenTyping, ArtikelGroepenTyping, VerkoopfacturenTyping, VerkoopkansenTyping, VerkoopOrdersTyping
@@ -27,8 +27,8 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 
     # Start logging
     print(f"Start GET Request voor tabel: {tabel} | {division_name} ({division_code})")
-    logging(finn_it_connection_string, klantnaam, f"Start GET Request voor tabel: {tabel} | {division_name} ({division_code})")
-    logging(finn_it_connection_string, klantnaam, f"Ophalen configuratiegegevens voor tabel: {tabel} | {division_name} ({division_code})")
+    logging(finn_it_connection_string, klantnaam, f"Start GET Request", script_id, script, division_code, tabel)
+    logging(finn_it_connection_string, klantnaam, f"Ophalen configuratiegegevens", script_id, script, division_code, tabel)
 
     # Ophalen configuratie gegevens
     config_conn = connect_to_database(connection_string)
@@ -47,15 +47,15 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
         if config_dict is None:
             # Fout logging
             print("Fout bij het ophalen van de configuratiegegevens.")
-            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het ophalen van de configuratiegegevens: {tabel} | {division_name} ({division_code})")
+            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het ophalen van de configuratiegegevens", script_id, script, division_code, tabel)
             return None
         else:
             # Succes logging
-            logging(finn_it_connection_string, klantnaam, f"Configuratiegegevens succesvol opgehaald voor: {klantnaam}")
+            logging(finn_it_connection_string, klantnaam, f"Configuratiegegevens succesvol opgehaald", script_id, script, division_code, tabel)
     else:
         # Foutmelding logging
         print(f"Fout bij het connecten met de database: {tabel} | {division_name} ({division_code}).")
-        logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het connecten met de database: {tabel} | {division_name} ({division_code})")
+        logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het connecten met de database", script_id, script, division_code, tabel)
         return None
 
     # Variabelen definiëren
@@ -133,7 +133,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
             if response.status_code == 401:
                 print(f"Fout bij het ophalen van gegevens: {response.status_code} - {response.text}")
                 # Logging
-                logging(finn_it_connection_string, klantnaam, f"Ophalen nieuwe access- en refresh token | {tabel} | {division_name} ({division_code})")
+                logging(finn_it_connection_string, klantnaam, f"Ophalen nieuwe access- en refresh token", script_id, script, division_code, tabel)
                 
                 # Ophalen nieuwe tokens
                 oude_refresh_token = refresh_token
@@ -146,12 +146,12 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
                     refresh_token = new_refresh_token
 
                     # Succes logging
-                    logging(finn_it_connection_string, klantnaam, f"Nieuwe refresh token successvol opgehaald en opgeslagen voor: {tabel} | {division_name} ({division_code})")
+                    logging(finn_it_connection_string, klantnaam, f"Nieuwe refresh token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
 
                 else:
                     # Foutmelding logging
-                    print(f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen voor: {tabel} | {division_name} ({division_code})")
-                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen voor: {tabel} | {division_name} ({division_code})")
+                    print(f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen voor {klantnaam}")
+                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen", script_id, script, division_code, tabel)
                     return None
 
                 # Nu kun je de nieuwe access en refresh tokens gebruiken voor je verzoeken
@@ -161,17 +161,17 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
                     access_token = new_access_token
 
                     # Succes logging
-                    print(f"Nieuwe refresh- en access token successvol opgehaald en opgeslagen voor: {tabel} | {division_name} ({division_code})")
-                    logging(finn_it_connection_string, klantnaam, f"Nieuwe access token successvol opgehaald en opgeslagen voor: {tabel} | {division_name} ({division_code})")
+                    print(f"Nieuwe access token successvol opgehaald en opgeslagen")
+                    logging(finn_it_connection_string, klantnaam, f"Nieuwe access token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
                 
                 else:
                     # Foutmelding logging
-                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe access token niet kunnen ophalen voor: {tabel} | {division_name} ({division_code})")
+                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe access token niet kunnen ophalen", script_id, script, division_code, tabel)
                     return None
             
             else:
                 print(f"Error {response.status_code}: {response.text}")
-                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Exact Online API foutmelding voor: {tabel} | {division_name} ({division_code}) - Status code: {response.status_code}")
+                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Exact Online API foutmelding | Status code: {response.status_code}", script_id, script, division_code, tabel)
                 return None
 
     # Maak een DataFrame van de verzamelde gegevens
@@ -179,7 +179,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
         df = pd.DataFrame(data)
 
         # Succes logging
-        logging(finn_it_connection_string, klantnaam, f"Data succesvol opgehaald voor: {tabel} | {division_name} ({division_code})")
+        logging(finn_it_connection_string, klantnaam, f"Data succesvol opgehaald", script_id, script, division_code, tabel)
 
         return df
     
@@ -187,11 +187,14 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
         df = pd.DataFrame()
         # Informatie logging
         print(f"Geen data opgehaald voor: {tabel} | {division_name} ({division_code})")
-        logging(finn_it_connection_string, klantnaam, f"Geen data opgehaald voor: {tabel} | {division_name} ({division_code})")
+        logging(finn_it_connection_string, klantnaam, f"Geen data opgehaald", script_id, script, division_code, tabel)
 
         return df
 
 if __name__ == "__main__":
+
+    # Definiëren van script
+    script = "Volledig"
 
     # Leg de starttijd vast
     start_time = time.time()
@@ -213,17 +216,25 @@ if __name__ == "__main__":
     # Verbindingsstring
     finn_it_connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;'
 
+    # ScriptID ophalen
+    database_conn = connect_to_database(finn_it_connection_string)
+    if database_conn:
+        cursor = database_conn.cursor()
+        latest_script_id = fetch_script_id(cursor)
+        database_conn.close()
+        if latest_script_id:
+            script_id = latest_script_id + 1
+        else:
+            script_id = 1
+
     # Start logging
     klantnaam = 'Finn It'
-    logging(finn_it_connection_string, klantnaam, f"Script gestart")
+    logging(finn_it_connection_string, klantnaam, f"Script gestart", script_id, script)
 
     # Verbinding maken met database
     database_conn = connect_to_database(finn_it_connection_string)
-
     if database_conn:
         cursor = database_conn.cursor()
-
-        # Ophalen connection_dict met retries
         connection_dict = None
         for attempt in range(max_retries):
             try:
@@ -232,26 +243,25 @@ if __name__ == "__main__":
                     break
             except Exception as e:
                 time.sleep(retry_delay)
-
         database_conn.close()
-    
         if connection_dict:
+
             # Start logging
-            logging(finn_it_connection_string, klantnaam, f"Ophalen connectiestrings gestart")
+            logging(finn_it_connection_string, klantnaam, f"Ophalen connectiestrings gestart", script_id, script)
         else:
             # Foutmelding logging
             print(f"FOUTMELDING | Ophalen connectiestrings mislukt na meerdere pogingen")
-            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Ophalen connectiestrings mislukt na meerdere pogingen")
+            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Ophalen connectiestrings mislukt na meerdere pogingen", script_id, script)
     else:
         # Foutmelding logging
         print(f"FOUTMELDING | Verbinding met database mislukt na meerdere pogingen")
-        logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met database mislukt na meerdere pogingen")
+        logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met database mislukt na meerdere pogingen", script_id, script)
 
     # Klant loop
     for klantnaam, (connection_string, type) in connection_dict.items():
         # Skip de klant als type niet gelijk is aan 1
         if type != 1:
-            continue # Ga naar de volgende klant als type niet gelijk is aan 1
+            continue
 
         # Error tracking
         errors_occurred = False
@@ -260,11 +270,10 @@ if __name__ == "__main__":
         nieuwe_laatste_sync = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
         # Start logging
-        logging(finn_it_connection_string, klantnaam, f"Ophalen configuratie gegevens gestart voor: {klantnaam}")
+        logging(finn_it_connection_string, klantnaam, f"Ophalen configuratie gegevens gestart", script_id, script)
         
         # Ophalen configuratie gegevens
         config_conn = connect_to_database(connection_string)
-
         if config_conn:
             cursor = config_conn.cursor()
             config_dict = None
@@ -275,50 +284,40 @@ if __name__ == "__main__":
                         break
                 except Exception as e:
                     time.sleep(retry_delay)
-
             if config_dict:
                 laatste_sync = config_dict['Laatste_sync']
-                print(laatste_sync)
-                # Schuif laatste_sync 5 dagen terug
-                if laatste_sync:
-                    laatste_sync = (datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S") - timedelta(days=5)).strftime("%Y-%m-%dT%H:%M:%S")
-                    print(laatste_sync)
                 reporting_year = config_dict['ReportingYear']
                 config_conn.close()
         
                 # Succes en start logging
-                logging(finn_it_connection_string, klantnaam, f"Ophalen configuratie gegevens gelukt voor: {klantnaam}")
-                logging(finn_it_connection_string, klantnaam, f"Ophalen divisiecodes gestart voor: {klantnaam}")
+                logging(finn_it_connection_string, klantnaam, f"Ophalen configuratie gegevens gelukt", script_id, script)
+                logging(finn_it_connection_string, klantnaam, f"Ophalen divisiecodes gestart", script_id, script)
             else:
                 # Foutmelding logging
-                print(f"FOUTMELDING | Ophalen configuratie gegevens mislukt voor: {klantnaam}")
-                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Ophalen configuratie gegevens mislukt voor: {klantnaam}")
+                print(f"FOUTMELDING | Ophalen configuratie gegevens mislukt", script_id, script)
+                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Ophalen configuratie gegevens mislukt", script_id, script)
                 continue
         
         # Ophalen tabel configuratie gegevens
         config_conn = connect_to_database(connection_string)
-
         if config_conn:    
             cursor = config_conn.cursor()
             table_config_dict = None
             for attempt in range(max_retries):
                 try:
                     table_config_dict = fetch_table_configurations(cursor)
-                    print(table_config_dict)
                     if table_config_dict:
                         break
                 except Exception as e:
                     time.sleep(retry_delay)
-
         else:
             # Foutmelding logging
-            print(f"FOUTMELDING | Verbinding met configuratie database mislukt voor: {klantnaam}")
-            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met configuratie database mislukt voor: {klantnaam}")
+            print(f"FOUTMELDING | Verbinding met configuratie database mislukt", script_id, script)
+            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met configuratie database mislukt", script_id, script)
             continue
 
         # Ophalen divisiecodes
         division_conn = connect_to_database(connection_string)
-        
         if division_conn:
             cursor = division_conn.cursor()
             division_dict = None
@@ -329,22 +328,21 @@ if __name__ == "__main__":
                         break
                 except Exception as e:
                     time.sleep(retry_delay)
-
             division_conn.close()
 
             # Succes logging
-            logging(finn_it_connection_string, klantnaam, f"Ophalen divisiecodes gelukt voor: {klantnaam}")
+            logging(finn_it_connection_string, klantnaam, f"Ophalen divisiecodes gelukt", script_id, script)
         else:
             # Foutmelding logging
-            print(f"FOUTMELDING | Verbinding met divisie database mislukt voor: {klantnaam}")
-            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met divisie database mislukt voor: {klantnaam}")
+            print(f"FOUTMELDING | Verbinding met divisie database mislukt", script_id, script)
+            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met divisie database mislukt", script_id, script)
             continue
 
         # Verbinding maken per divisie code
         for division_name, division_code in division_dict.items():
             # Start logging en print
             print(f"Begin GET Requests voor divisie: {division_name} ({division_code}) | {klantnaam}")
-            logging(finn_it_connection_string, klantnaam, f"Start GET Requests voor divisie: {division_name} ({division_code}) | {klantnaam}")
+            logging(finn_it_connection_string, klantnaam, f"Start GET Requests voor nieuwe divisie", script_id, script, division_code)
 
             url = f"https://start.exactonline.nl/api/v1/{division_code}/"
             
@@ -356,7 +354,7 @@ if __name__ == "__main__":
 
                     if verschil_in_jaren > 1.2:
                         print("Reset sync")
-                        logging(finn_it_connection_string, klantnaam, f"Reset sync voor divisie: {division_name} ({division_code}) | {klantnaam}")
+                        logging(finn_it_connection_string, klantnaam, f"Reset sync", script_id, script, division_code)
                         endpoints = {
                             "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
                             "Grootboekrekening": f"bulk/financial/GLAccounts?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,BalanceSide,BalanceType,Code,Costcenter,CostcenterDescription,Costunit,CostunitDescription,Description,Division,Type,TypeDescription",
@@ -404,71 +402,67 @@ if __name__ == "__main__":
                     if table == tabel:
                         if status == 0:
                             print(f"Overslaan van GET Requests voor endpoint: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                            logging(finn_it_connection_string, klantnaam, f"Overslaan van GET Requests voor endpoint: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                            logging(finn_it_connection_string, klantnaam, f"Overslaan van GET Requests", script_id, script, division_code, tabel)
                             continue
                         else:
-                            # Start logging
-                            print(f"Start GET Requests voor endpoint: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                            logging(finn_it_connection_string, klantnaam, f"Start GET Requests voor endpoint: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                            
                             # Uitvoeren GET Request
                             df = get_request(division_code, url, endpoint, connection_string, finn_it_connection_string, klantnaam, tabel)
 
                             if df is None:
                                 # Foutmelding logging
                                 print(f"FOUTMELDING | Fout bij het ophalen van data voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het ophalen van data voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het ophalen van data", script_id, script, division_code, tabel)
                                 errors_occurred = True
                                 break
 
                             elif df.empty:
                                 # Geen data opgehaald, maar geen error
                                 print(f"Geen data opgehaald voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                                logging(finn_it_connection_string, klantnaam, f"Geen data opgehaald voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"Geen data opgehaald", script_id, script, division_code, tabel)
                                 continue
 
                             else:
                                 # Succes logging
-                                logging(finn_it_connection_string, klantnaam, f"Ophalen DataFrame gelukt voor: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"Ophalen DataFrame gelukt", script_id, script, division_code, tabel)
 
                             # Data transformatie Verkoopfacturen
                             if tabel == "Verkoopfacturen":
                                 # Start logging
-                                logging(finn_it_connection_string, klantnaam, f"Start van data transformatie verkoopfacturen | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"Start van data transformatie", script_id, script, division_code, tabel)
 
                                 # Voer data transformatie uit
                                 try:
                                     df = append_invoice_lines(df)
 
                                     # Succes logging
-                                    logging(finn_it_connection_string, klantnaam, f"Data transformatie verkoopfacturen gelukt | {division_name} ({division_code}) | {klantnaam}")
+                                    logging(finn_it_connection_string, klantnaam, f"Data transformatie gelukt", script_id, script, division_code, tabel)
 
                                 except Exception as e:
                                     # Foutmelding logging
                                     print(f"FOUTMELDING | Fout bij het transformeren van verkoopfacturen | {division_name} ({division_code}) | {klantnaam}")
-                                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het transformeren van verkoopfacturen: {e} | {division_name} ({division_code}) | {klantnaam}")
+                                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het transformeren: {e}", script_id, script, division_code, tabel)
                                     print(e)
 
                             # Data transformatie VerkoopOrders
                             if tabel == "VerkoopOrders":
                                 # Start logging
-                                logging(finn_it_connection_string, klantnaam, f"Start van data transformatie verkooporders | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"Start van data transformatie", script_id, script, division_code, tabel)
 
                                 # Voer data transformatie uit
                                 try:
                                     df = append_order_lines(df)
 
                                     # Succes logging
-                                    logging(finn_it_connection_string, klantnaam, f"Data transformatie verkooporders gelukt | {division_name} ({division_code}) | {klantnaam}")
+                                    logging(finn_it_connection_string, klantnaam, f"Data transformatie gelukt", script_id, script, division_code, tabel)
 
                                 except Exception as e:
                                     # Foutmelding logging
                                     print(f"FOUTMELDING | Fout bij het transformeren van verkooporders | {division_name} ({division_code}) | {klantnaam}")
-                                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het transformeren van verkooporders: {e} | {division_name} ({division_code}) | {klantnaam}")
+                                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het transformeren: {e}", script_id, script, division_code, tabel)
                                     print(e)
 
                             # Start logging
-                            logging(finn_it_connection_string, klantnaam, f"Start data mapping voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                            logging(finn_it_connection_string, klantnaam, f"Start data mapping", script_id, script, division_code, tabel)
 
                             # Tabel mapping
                             mapping_dict = {
@@ -495,15 +489,15 @@ if __name__ == "__main__":
                             if column_mapping is None:
                                 # Foutmelding logging en print
                                 print(f"Geen kolom mapping gevonden voor tabel: {tabel}")
-                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen mapping gevonden voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen mapping gevonden", script_id, script, division_code, tabel)
                                 continue
 
                             # Transform the DataFrame columns
                             df_transformed = transform_columns(df, column_mapping, division_code)
 
                             # Succes en start logging
-                            logging(finn_it_connection_string, klantnaam, f"Data mapping succesvol voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                            logging(finn_it_connection_string, klantnaam, f"Start data type conversie voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                            logging(finn_it_connection_string, klantnaam, f"Data mapping succesvol", script_id, script, division_code, tabel)
+                            logging(finn_it_connection_string, klantnaam, f"Start data type conversie", script_id, script, division_code, tabel)
 
                             # Column mapping
                             column_dictionary = {
@@ -530,15 +524,15 @@ if __name__ == "__main__":
                             if column_types is None:
                                 # Foutmelding logging en print
                                 print(f"Geen data type mapping gevonden voor tabel: {tabel}")
-                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen data type mapping gevonden voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen data type mapping gevonden", script_id, script, division_code, tabel)
                                 continue
 
                             # Transform the DataFrame column types
                             df_transformed = convert_column_types(df_transformed, column_types)
 
                             # Succes en start logging
-                            logging(finn_it_connection_string, klantnaam, f"Data type conversie succesvol voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                            logging(finn_it_connection_string, klantnaam, f"Start mogelijk verwijderen rijen of complete tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                            logging(finn_it_connection_string, klantnaam, f"Data type conversie succesvol", script_id, script, division_code, tabel)
+                            logging(finn_it_connection_string, klantnaam, f"Start mogelijk verwijderen rijen of complete tabel", script_id, script, division_code, tabel)
 
                             # Table modes for deleting rows or complete table
                             table_modes = {
@@ -567,15 +561,15 @@ if __name__ == "__main__":
                             if table_mode is None:
                                 # Foutmelding logging en print
                                 print(f"Geen actie gevonden voor tabel: {tabel}")
-                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen actie gevonden voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen actie gevonden", script_id, script, division_code, tabel)
                                 continue
 
                             # Clear the table
-                            actie = clear_table(connection_string, tabel, table_mode, reporting_year, division_code)
+                            actie, rows_deleted = clear_table(connection_string, tabel, table_mode, reporting_year, division_code)
 
                             # Succes en start logging
-                            logging(finn_it_connection_string, klantnaam, f"Rijen verwijderd voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
-                            logging(finn_it_connection_string, klantnaam, f"Start toevoegen rijen naar database voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                            logging(finn_it_connection_string, klantnaam, f"Totaal verwijderde rijen {rows_deleted}", script_id, script, division_code, tabel)
+                            logging(finn_it_connection_string, klantnaam, f"Start toevoegen rijen naar database", script_id, script, division_code, tabel)
 
                             # Unieke kolom per tabel
                             unique_columns = {
@@ -603,7 +597,7 @@ if __name__ == "__main__":
                             if unique_column is None:
                                 # Foutmelding logging en print
                                 print(f"Geen unieke kolom gevonden voor tabel: {tabel}")
-                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen unieke kolom gevonden voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen unieke kolom gevonden", script_id, script, division_code, tabel)
                                 continue
 
                             # Administratie kolom per tabel
@@ -633,7 +627,7 @@ if __name__ == "__main__":
                             if administration_column is None:
                                 # Foutmelding logging en print
                                 print(f"Geen administratie kolom gevonden voor tabel: {tabel}")
-                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen administratie kolom gevonden voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen administratie kolom gevonden", script_id, script, division_code, tabel)
                                 continue
 
                             # Schrijf de DataFrame naar de database
@@ -641,23 +635,23 @@ if __name__ == "__main__":
                                 write_to_database(df_transformed, tabel, connection_string, unique_column, administration_column, table_mode, laatste_sync)
                                 
                                 # Succeslogging bij succes
-                                logging(finn_it_connection_string, klantnaam, f"Toeschrijven rijen naar database succesvol afgerond voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+                                logging(finn_it_connection_string, klantnaam, f"Succesvol {len(df)} rijen toegevoegd aan de database", script_id, script, division_code, tabel)
                                     
                             except Exception as e:
                                 # Foutmelding logging en print
-                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het toevoegen naar database voor tabel: {tabel} | {division_name} ({division_code}) - Foutmelding: {str(e)}")
+                                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het toevoegen naar database | Foutmelding: {str(e)}", script_id, script, division_code, tabel)
                                 print(f"Fout bij het toevoegen naar database: {e}")
                                 errors_occurred = True
 
             # Succes logging
-            logging(finn_it_connection_string, klantnaam, f"GET Requests succesvol afgerond voor divisie: {division_name} ({division_code}) | {klantnaam}")
+            logging(finn_it_connection_string, klantnaam, f"GET Requests succesvol afgerond deze divisie", script_id, script, division_code)
 
         # Succes en start logging
         print(f"Sync succesvol afgerond voor klant: {klantnaam}")
-        logging(finn_it_connection_string, klantnaam, f"Sync succesvol afgerond voor klant: {klantnaam}")
+        logging(finn_it_connection_string, klantnaam, f"Sync succesvol afgerond", script_id, script)
 
         if not errors_occurred:
-            logging(finn_it_connection_string, klantnaam, f"Creëren nieuwe laatste sync en reporting year voor klant: {klantnaam}")
+            logging(finn_it_connection_string, klantnaam, f"Creëren nieuwe laatste sync en reporting year", script_id, script)
 
             try:    
                 # Update laatste sync en reporting year
@@ -666,20 +660,20 @@ if __name__ == "__main__":
 
                 # Succes logging
                 print(f"Laatste sync en reporting year succesvol geüpdate voor klant: {klantnaam}")
-                logging(finn_it_connection_string, klantnaam, f"Laatste sync en reporting year succesvol geüpdate voor klant: {klantnaam}")
+                logging(finn_it_connection_string, klantnaam, f"Laatste sync en reporting year succesvol geüpdate", script_id, script)
 
             except Exception as e:
                 # Foutmelding logging en print
                 print(f"Fout bij het toevoegen naar database: {e}")
-                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij updaten laatste_sync en reporting year voor klant: {klantnaam} - Foutmelding: {str(e)}")
+                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij updaten laatste_sync en reporting year: {str(e)}", script_id, script)
         else:
             # Logging dat er fouten zij opgetreden en dat de laatste sync niet is geupdate
             print(f"Er zijn fouten opgetreden voor klant: {klantnaam}, laatste_sync wordt niet geüpdate")
-            logging(finn_it_connection_string, klantnaam, f"Er zijn fouten opgetreden voor klant: {klantnaam}, laatste_sync wordt niet geüpdate")
+            logging(finn_it_connection_string, klantnaam, f"Er zijn fouten opgetreden, laatste_sync wordt niet geüpdate", script_id, script)
 
         # Succes logging
         print(f"Endpoints succesvol afgerond voor klant: {klantnaam}")
-        logging(finn_it_connection_string, klantnaam, f"Script succesvol afgerond voor klant: {klantnaam}")
+        logging(finn_it_connection_string, klantnaam, f"Script succesvol afgerond", script_id, script)
 
     # Totale tijdsduur script
     end_time = time.time()
@@ -692,4 +686,4 @@ if __name__ == "__main__":
 
     # Succes logging
     print(f"Script volledig afgerond in {formatted_duration}")
-    logging(finn_it_connection_string, "Finn It", f"Script volledig afgerond in {formatted_duration}")
+    logging(finn_it_connection_string, "Finn It", f"Script volledig afgerond in {formatted_duration}", script_id, script)

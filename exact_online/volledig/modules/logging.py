@@ -2,7 +2,7 @@ from datetime import datetime
 from modules.database import connect_to_database
 import time
 
-def logging(logging_connection_string, klantnaam, actie):
+def logging(logging_connection_string, klantnaam, actie, script_id, script, administratiecode=None, tabel=None):
     # Actuele datum en tijd ophalen
     datumtijd = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
@@ -20,12 +20,12 @@ def logging(logging_connection_string, klantnaam, actie):
 
         # Query om waarden toe te voegen aan de Logging tabel met parameterbinding
         insert_query = """
-        INSERT INTO Logging (Klantnaam, Actie, Datumtijd)
-        VALUES (?, ?, ?)
+        INSERT INTO Logging (Klantnaam, Actie, Datumtijd, Administratiecode, Tabel, Script, ScriptID)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """
 
         # Voer de INSERT-query uit met parameterbinding
-        cursor.execute(insert_query, (klantnaam, actie, datumtijd))
+        cursor.execute(insert_query, (klantnaam, actie, datumtijd, administratiecode, tabel, script, script_id))
         logging_conn.commit() 
 
     except Exception as e:
