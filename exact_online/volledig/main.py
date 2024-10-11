@@ -63,7 +63,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
     client_id = config_dict['client_id']
     access_token = config_dict['access_token']
     refresh_token = config_dict['refresh_token']
-
+    
     # Request loop
     while full_url:
         
@@ -194,7 +194,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 if __name__ == "__main__":
 
     # Definiëren van script
-    script = "Wijzigingen"
+    script = "Volledig"
 
     # Definiëren van start tijd en datum
     start_time = time.time()
@@ -267,34 +267,7 @@ if __name__ == "__main__":
             continue
 
         # Start logging
-        print(f"Ophalen configuratie gegevens voor: {klantnaam}")
-        logging(finn_it_connection_string, klantnaam, f"Ophalen configuratie gegevens gestart", script_id, script)
-        
-        # Ophalen configuratie gegevens
-        config_conn = connect_to_database(connection_string)
-        if config_conn:
-            cursor = config_conn.cursor()
-            config_dict = None
-            for attempt in range(max_retries):
-                try:
-                    config_dict = fetch_configurations(cursor)
-                    if config_dict:
-                        break
-                except Exception as e:
-                    time.sleep(retry_delay)
-            if config_dict:
-                laatste_sync = config_dict['Laatste_sync']
-                reporting_year = config_dict['ReportingYear']
-                config_conn.close()
-        
-                # Succes en start logging
-                logging(finn_it_connection_string, klantnaam, f"Ophalen configuratie gegevens gelukt", script_id, script)
-                logging(finn_it_connection_string, klantnaam, f"Ophalen divisiecodes gestart", script_id, script)
-            else:
-                # Foutmelding logging
-                print(f"FOUTMELDING | Ophalen configuratie gegevens mislukt voor: {klantnaam}")
-                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Ophalen configuratie gegevens mislukt", script_id, script)
-                continue
+        logging(finn_it_connection_string, klantnaam, f"Ophalen divisiecodes gestart", script_id, script)
         
         # Ophalen tabel configuratie gegevens
         config_conn = connect_to_database(connection_string)
@@ -346,8 +319,8 @@ if __name__ == "__main__":
                     
             # Endpoints
             endpoints = {
-                "VerkoopOrders": f"SalesOrder/SalesOrders?$filter=OrderDate ge datetime'{start_date}'&$select=ApprovalStatusDescription,Approved,ApproverFullName,Created,CreatorFullName,Currency,DeliverTo,Description,Division,InvoiceStatusDescription,InvoiceTo,OrderDate,OrderedBy,OrderID,OrderNumber,Remarks,ShippingMethodDescription,StatusDescription,YourRef,SalesOrderLines/AmountDC,SalesOrderLines/CostCenterDescription,SalesOrderLines/CostPriceFC,SalesOrderLines/CostUnitDescription,SalesOrderLines/DeliveryDate,SalesOrderLines/Description,SalesOrderLines/Discount,SalesOrderLines/ID,SalesOrderLines/Item,SalesOrderLines/LineNumber,SalesOrderLines/Quantity,SalesOrderLines/VATAmount,SalesOrderLines/VATPercentage&$expand=SalesOrderLines",
-                "Verkoopfacturen": f"SalesInvoice/SalesInvoices?$filter=InvoiceDate ge datetime'{start_date}'&$select=Currency,DeliverTo,Description,Division,InvoiceDate,InvoiceID,InvoiceNumber,InvoiceTo,OrderDate,OrderedBy,PaymentConditionDescription,Remarks,ShippingMethodDescription,StatusDescription,YourRef,StarterSalesInvoiceStatusDescription,SalesInvoiceLines/AmountDC,SalesInvoiceLines/CostCenterDescription,SalesInvoiceLines/CostUnitDescription,SalesInvoiceLines/DeliveryDate,SalesInvoiceLines/Description,SalesInvoiceLines/Description,SalesInvoiceLines/Discount,SalesInvoiceLines/EmployeeFullName,SalesInvoiceLines/GLAccount,SalesInvoiceLines/ID,SalesInvoiceLines/Item,SalesInvoiceLines/LineNumber,SalesInvoiceLines/Quantity,SalesInvoiceLines/SalesOrder,SalesInvoiceLines/SalesOrderLine,SalesInvoiceLines/UnitDescription,SalesInvoiceLines/UnitPrice,SalesInvoiceLines/VATAmountDC,SalesInvoiceLines/VATPercentage&$expand=SalesInvoiceLines",
+                "Verkoopfacturen": f"bulk/SalesInvoice/SalesInvoices?$filter=InvoiceDate ge datetime'{start_date}'&$select=Currency,DeliverTo,Description,Division,InvoiceDate,InvoiceID,InvoiceNumber,InvoiceTo,OrderDate,OrderedBy,PaymentConditionDescription,Remarks,ShippingMethodDescription,StatusDescription,YourRef,StarterSalesInvoiceStatusDescription,SalesInvoiceLines/AmountDC,SalesInvoiceLines/CostCenterDescription,SalesInvoiceLines/CostUnitDescription,SalesInvoiceLines/DeliveryDate,SalesInvoiceLines/Description,SalesInvoiceLines/Description,SalesInvoiceLines/Discount,SalesInvoiceLines/EmployeeFullName,SalesInvoiceLines/GLAccount,SalesInvoiceLines/ID,SalesInvoiceLines/Item,SalesInvoiceLines/LineNumber,SalesInvoiceLines/Quantity,SalesInvoiceLines/SalesOrder,SalesInvoiceLines/SalesOrderLine,SalesInvoiceLines/UnitDescription,SalesInvoiceLines/UnitPrice,SalesInvoiceLines/VATAmountDC,SalesInvoiceLines/VATPercentage&$expand=SalesInvoiceLines",
+                "VerkoopOrders": f"bulk/SalesOrder/SalesOrders?$filter=OrderDate ge datetime'{start_date}'&$select=ApprovalStatusDescription,Approved,ApproverFullName,Created,CreatorFullName,Currency,DeliverTo,Description,Division,InvoiceStatusDescription,InvoiceTo,OrderDate,OrderedBy,OrderID,OrderNumber,Remarks,ShippingMethodDescription,StatusDescription,YourRef,SalesOrderLines/AmountDC,SalesOrderLines/CostCenterDescription,SalesOrderLines/CostPriceFC,SalesOrderLines/CostUnitDescription,SalesOrderLines/DeliveryDate,SalesOrderLines/Description,SalesOrderLines/Discount,SalesOrderLines/ID,SalesOrderLines/Item,SalesOrderLines/LineNumber,SalesOrderLines/Quantity,SalesOrderLines/VATAmount,SalesOrderLines/VATPercentage&$expand=SalesOrderLines",
                 "GrootboekMutaties": f"bulk/Financial/TransactionLines?$filter=FinancialYear ge {start_date[:4]}&$select=ID,Account,AmountDC,AmountVATFC,CostCenter,CostCenterDescription,CostUnit,CostUnitDescription,Currency,Date,Description,Division,EntryNumber,FinancialPeriod,FinancialYear,GLAccount,InvoiceNumber,OrderNumber,PaymentReference,VATPercentage,Type",
             }
 
@@ -520,7 +493,8 @@ if __name__ == "__main__":
                                 write_to_database(df_transformed, tabel, connection_string)
                                 
                                 # Succeslogging bij succes
-                                logging(finn_it_connection_string, klantnaam, f"Succesvol {len(df)} rijen toegevoegd aan de database", script_id, script, division_code, tabel)
+                                print(f"Succesvol {len(df_transformed)} rijen toegevoegd aan de database voor tabel: {tabel}")
+                                logging(finn_it_connection_string, klantnaam, f"Succesvol {len(df_transformed)} rijen toegevoegd aan de database", script_id, script, division_code, tabel)
                                     
                             except Exception as e:
                                 # Foutmelding logging en print

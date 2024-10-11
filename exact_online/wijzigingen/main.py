@@ -194,7 +194,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 if __name__ == "__main__":
 
     # Definiëren van script
-    script = "Volledig"
+    script = "Wijzigingen"
 
     # Leg de starttijd vast
     start_time = time.time()
