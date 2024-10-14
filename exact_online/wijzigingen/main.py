@@ -392,23 +392,23 @@ if __name__ == "__main__":
 
                             # Unieke kolom per tabel
                             unique_columns = {
-                                "Voorraad": "ID",
-                                "Grootboekrekening": "ID",
-                                "GrootboekRubriek": "ID",
-                                "GrootboekMutaties": "ID",
-                                "CrediteurenOpenstaand": "ID",
-                                "DebiteurenOpenstaand": "ID",
-                                "Relaties": "ID",
-                                "RelatieKeten": "ID",
-                                "Budget": "ID",
-                                "GrootboekMapping": "ID",
-                                "ReportingBalance": "ID",
-                                "Artikelen": "ID",
-                                "ArtikelenExtraVelden": "ArtikelID",
-                                "ArtikelGroepen": "ID",
-                                "Verkoopfacturen": "FR_FactuurregelID",
-                                "VerkoopOrders": "OR_OrderRegelID",
-                                "Verkoopkansen": "VerkoopkansID"
+                                "Voorraad": ["ID"],
+                                "Grootboekrekening": ["ID"],
+                                "GrootboekRubriek": ["ID"],
+                                "GrootboekMutaties": ["ID"],
+                                "CrediteurenOpenstaand": ["ID"],
+                                "DebiteurenOpenstaand": ["ID"],
+                                "Relaties": ["ID"],
+                                "RelatieKeten": ["ID"],
+                                "Budget": ["ID"],
+                                "GrootboekMapping": ["ID"],
+                                "ReportingBalance": ["ID"],
+                                "Artikelen": ["ID"],
+                                "ArtikelenExtraVelden": ["ArtikelID", "Nummer"],
+                                "ArtikelGroepen": ["ID"],
+                                "Verkoopfacturen": ["FR_FactuurregelID"],
+                                "VerkoopOrders": ["OR_OrderRegelID"],
+                                "Verkoopkansen": ["VerkoopkansID"]
                             }
                             
                             # Unieke kolom ophalen voor de specifieke tabel

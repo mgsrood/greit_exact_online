@@ -24,7 +24,7 @@ def connect_to_database(connection_string):
     print("Kan geen verbinding maken met de database na meerdere pogingen.")
     return None
 
-def write_to_database(df, tabel, connection_string, unique_column, division_column, mode, laatste_sync):
+def write_to_database(df, tabel, connection_string, unique_columns, division_column, mode, laatste_sync):
     db_params = urllib.parse.quote_plus(connection_string)
     engine = create_engine(f"mssql+pyodbc:///?odbc_connect={db_params}")
 
@@ -57,13 +57,16 @@ def write_to_database(df, tabel, connection_string, unique_column, division_colu
                     # Laad de data in de tijdelijke fysieke tabel
                     df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
 
+                    # Constructeer de ON clause voor de MERGE-query
+                    on_clause = " AND ".join([f"target.{col} = source.{col}" for col in unique_columns])
+
                     # Gebruik daarna een MERGE-query om de data te synchroniseren met de doel-tabel
                     merge_query = f"""
                     MERGE {tabel} AS target
                     USING (SELECT * FROM {temp_table_name}) AS source
-                    ON (target.{unique_column} = source.{unique_column} AND target.{division_column} = source.{division_column})
+                    ON ({on_clause} AND target.{division_column} = source.{division_column})
                     WHEN MATCHED THEN
-                        UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in [unique_column, division_column]])}
+                        UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in unique_columns and col != division_column])}
                     WHEN NOT MATCHED THEN
                         INSERT ({', '.join(df.columns)})
                         VALUES ({', '.join([f'source.{col}' for col in df.columns])});

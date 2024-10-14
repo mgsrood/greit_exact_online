@@ -127,7 +127,7 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 
             elif response.status_code == 503:
                 print(f"Server is tijdelijk onbeschikbaar, poging {attempt + 1} van 3. Wacht 5 minuten...")
-                time.sleep(300)  # Wacht 5 minuten voordat je opnieuw probeert
+                time.sleep(300)  # Wacht 5 seconden voordat je opnieuw probeert
 
             elif response.status_code == 401:
                 print(f"Fout bij het ophalen van gegevens: {response.status_code} - {response.text}")
@@ -147,23 +147,18 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
                     # Succes logging
                     logging(finn_it_connection_string, klantnaam, f"Nieuwe refresh token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
 
-                else:
-                    # Foutmelding logging
-                    print(f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen voor {klantnaam}")
-                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen", script_id, script, division_code, tabel)
-                    return None
+                    # Opslaan nieuwe access token
+                    if new_access_token:
+                        # Voer hier je verzoek uit met de nieuwe access token
+                        save_access_token(connection_string, new_access_token)
+                        access_token = new_access_token
 
-                # Nu kun je de nieuwe access en refresh tokens gebruiken voor je verzoeken
-                if new_access_token and new_refresh_token:
-                    # Voer hier je verzoek uit met de nieuwe access token
-                    save_access_token(connection_string, new_access_token)
-                    access_token = new_access_token
+                        # Succes logging
+                        print(f"Nieuwe access token successvol opgehaald en opgeslagen")
+                        logging(finn_it_connection_string, klantnaam, f"Nieuwe access token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
 
-                    # Succes logging
-                    print(f"Nieuwe access token successvol opgehaald en opgeslagen")
-                    logging(finn_it_connection_string, klantnaam, f"Nieuwe access token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
+                        break
                 
-                else:
                     # Foutmelding logging
                     logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe access token niet kunnen ophalen", script_id, script, division_code, tabel)
                     return None
@@ -184,9 +179,6 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
     
     else:
         df = pd.DataFrame()
-        # Informatie logging
-        print(f"Geen data opgehaald voor: {tabel} | {division_code} ({division_code})")
-        logging(finn_it_connection_string, klantnaam, f"Geen data opgehaald", script_id, script, division_code, tabel)
 
         return df
 
