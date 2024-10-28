@@ -359,6 +359,37 @@ Verkoopkansen = {
     'ContactFullName': 'ContactpersoonNaam'
 }
 
+Offertes = {
+    'Division': 'O_AdministratieCode',
+    'QuotationID': 'O_OfferteID',
+    'QuotationNumber': 'O_Offertenummer',
+    'VersionNumber': 'O_Versie',
+    'ID': 'OR_OfferteRegelID',
+    'SalesPersonFullName': 'O_Medewerker',
+    'Currency': 'O_Valuta',
+    'Description': 'O_Omschrijving',
+    'StatusDescription': 'O_Status',
+    'OrderAccount': 'O_RelatieID',
+    'Opportunity': 'O_VerkoopKansID',
+    'QuotationDate': 'O_OfferteDatum',
+    'ClosingDate': 'O_VervalDatum',
+    'CloseDate': 'O_EindDatum',
+    'DeliveryDate': 'O_AfleverDatum',
+    'Remarks': 'O_Opmerkingen',
+    'YourRef': 'O_UwReferentie',
+    'AmountDC': 'OR_Bedrag',
+    'CostCenterDescription': 'OR_Kostenplaats',
+    'CostUnitDescription': 'OR_Kostendrager',
+    'Discount': 'OR_Korting',
+    'Item': 'OR_ArtikelID',
+    'LineNumber': 'OR_Regelnummer',
+    'Quantity': 'OR_Aantal',
+    'UnitDescription': 'OR_Eenheid',
+    'UnitPrice': 'OR_PrijsPerEenheid',
+    'VATAmountFC': 'OR_BTWBedrag',
+    'VATPercentage': 'OR_BTWPercentage'
+}
+
 def transform_columns(df, column_mapping, division_code):
     # Controleer of de DataFrame leeg is
     

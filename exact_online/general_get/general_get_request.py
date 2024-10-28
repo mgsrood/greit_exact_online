@@ -146,7 +146,7 @@ if __name__ == "__main__":
     
     # Define url and endpoint
     url = f"https://start.exactonline.nl/api/v1/{division_code}"
-    endpoint = "/read/logistics/ItemExtraField"
+    endpoint = "/crm/Quotations?$select=QuotationID,QuotationNumber,VersionNumber,SalesPersonFullName,Currency,Description,StatusDescription,OrderAccount,Opportunity,QuotationDate,ClosingDate,CloseDate,DeliveryDate,Remarks,YourRef,AmountDC,QuotationLines/ID,QuotationLines/AmountDC,QuotationLines/CostCenterDescription,QuotationLines/CostUnitDescription,QuotationLines/Description,QuotationLines/Discount,QuotationLines/Item,QuotationLines/LineNumber,QuotationLines/Quantity,QuotationLines/UnitDescription,QuotationLines/UnitPrice,QuotationLines/VATAmountFC,QuotationLines/VATPercentage&$expand=QuotationLines"
 
     df = get_request(division_code, url, endpoint)
     if df is not None:

@@ -362,6 +362,37 @@ VerkoopkansenTyping = {
     'ContactpersoonNaam': 'nvarchar',
 }
 
+OffertesTyping = {
+    'O_AdministratieCode': 'int',
+    'O_OfferteID': 'nvarchar',
+    'O_Offertenummer': 'int',
+    'O_Versie': 'int',
+    'OR_OfferteRegelID': 'uniqueidentifier',
+    'O_Medewerker': 'nvarchar',
+    'O_Valuta': 'nvarchar',
+    'O_Omschrijving': 'nvarchar',
+    'O_Status': 'nvarchar',
+    'O_RelatieID': 'nvarchar',
+    'O_VerkoopKansID': 'nvarchar',
+    'O_OfferteDatum': 'date',
+    'O_VervalDatum': 'date',
+    'O_EindDatum': 'date',
+    'O_AfleverDatum': 'date',
+    'O_Opmerkingen': 'nvarchar',
+    'O_UwReferentie': 'nvarchar',
+    'OR_Bedrag': 'decimal',
+    'OR_Kostenplaats': 'nvarchar',
+    'OR_Kostendrager': 'nvarchar',
+    'OR_Omschrijving': 'nvarchar',
+    'OR_Korting': 'decimal',
+    'OR_ArtikelID': 'nvarchar',
+    'OR_Regelnummer': 'int',
+    'OR_Aantal': 'decimal',
+    'OR_Eenheid': 'nvarchar',
+    'OR_PrijsPerEenheid': 'decimal',
+    'OR_BTWBedrag': 'decimal',
+    'OR_BTWPercentage': 'decimal'
+}
 
 def convert_column_types(df, column_types):
     pd.set_option('future.no_silent_downcasting', True)
@@ -397,6 +428,7 @@ def convert_column_types(df, column_types):
                 elif dtype == 'decimal':
                     df[column] = df[column].apply(lambda x: Decimal(x) if pd.notna(x) else None)
                 elif dtype == 'bit':
+                    df[column] = df[column].str.lower().map({'true': True, 'false': False, '1': True, '0': False})
                     df[column] = df[column].astype(bool)
                 elif dtype == 'date':
                     df[column] = pd.to_datetime(df[column], errors='coerce').dt.date

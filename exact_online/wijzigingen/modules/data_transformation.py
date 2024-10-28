@@ -84,3 +84,45 @@ def append_order_lines(df):
     df = pd.DataFrame(orderregels)
 
     return df
+
+def append_quotation_lines(df):
+    # Een lege rij voor alle offerteregels
+    offerte_regels = []
+
+    # Variabele om de laatste offertegegevens bij te houden
+    huidige_offerte = {}
+
+    # Itereer door de rijen van de dataset
+    for index, row in df.iterrows():
+        if pd.notna(row['QuotationID']):
+            # Dit is een offerte, sla de relevante gegevens op
+            huidige_offerte = {
+                'Division': row['Division'],
+                'QuotationID': row['QuotationID'],
+                'QuotationNumber': row['QuotationNumber'],
+                'VersionNumber': row['VersionNumber'],
+                'ID': row['ID'],
+                'SalesPersonFullName': row['SalesPersonFullName'],
+                'Currency': row['Currency'],
+                'Description': row['Description'],
+                'StatusDescription': row['StatusDescription'],
+                'OrderAccount': row['OrderAccount'],
+                'Opportunity': row['Opportunity'],
+                'QuotationDate': row['QuotationDate'],
+                'ClosingDate': row['ClosingDate'],
+                'CloseDate': row['CloseDate'],
+                'DeliveryDate': row['DeliveryDate'],
+                'Remarks': row['Remarks'],
+                'YourRef': row['YourRef'],
+            }
+        else:
+            # Dit is een offerteregel, voeg de offertegegevens toe en sla op
+            offerteregel = row.copy()  # Kopieer de huidige offerteregel
+            for key, value in huidige_offerte.items():
+                offerteregel[key] = value  # Voeg de offertegegevens toe aan de offerteregel
+            offerte_regels.append(offerteregel)
+    
+    # Maak een DataFrame van de orderregels
+    df = pd.DataFrame(offerte_regels)
+
+    return df
