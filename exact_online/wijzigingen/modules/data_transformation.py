@@ -71,7 +71,7 @@ def append_order_lines(df):
                 'Remarks': row['Remarks'],
                 'ShippingMethodDescription': row['ShippingMethodDescription'],
                 'StatusDescription': row['StatusDescription'],
-                'YourRef': row['YourRef']
+                'YourRef': row['YourRef'],
             }
         else:
             # Dit is een orderregel, voeg de ordergegevens toe en sla op
@@ -97,14 +97,12 @@ def append_quotation_lines(df):
         if pd.notna(row['QuotationID']):
             # Dit is een offerte, sla de relevante gegevens op
             huidige_offerte = {
-                'Division': row['Division'],
                 'QuotationID': row['QuotationID'],
                 'QuotationNumber': row['QuotationNumber'],
                 'VersionNumber': row['VersionNumber'],
-                'ID': row['ID'],
                 'SalesPersonFullName': row['SalesPersonFullName'],
                 'Currency': row['Currency'],
-                'Description': row['Description'],
+                'Quotation_Description': row['Description'],  
                 'StatusDescription': row['StatusDescription'],
                 'OrderAccount': row['OrderAccount'],
                 'Opportunity': row['Opportunity'],
@@ -113,8 +111,8 @@ def append_quotation_lines(df):
                 'CloseDate': row['CloseDate'],
                 'DeliveryDate': row['DeliveryDate'],
                 'Remarks': row['Remarks'],
-                'YourRef': row['YourRef'],
-            }
+                'YourRef': row['YourRef'],          
+                }
         else:
             # Dit is een offerteregel, voeg de offertegegevens toe en sla op
             offerteregel = row.copy()  # Kopieer de huidige offerteregel

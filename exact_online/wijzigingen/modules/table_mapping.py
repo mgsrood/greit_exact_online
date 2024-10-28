@@ -367,7 +367,7 @@ Offertes = {
     'ID': 'OR_OfferteRegelID',
     'SalesPersonFullName': 'O_Medewerker',
     'Currency': 'O_Valuta',
-    'Description': 'O_Omschrijving',
+    'Quotation_Description': 'O_Omschrijving',
     'StatusDescription': 'O_Status',
     'OrderAccount': 'O_RelatieID',
     'Opportunity': 'O_VerkoopKansID',
@@ -387,7 +387,8 @@ Offertes = {
     'UnitDescription': 'OR_Eenheid',
     'UnitPrice': 'OR_PrijsPerEenheid',
     'VATAmountFC': 'OR_BTWBedrag',
-    'VATPercentage': 'OR_BTWPercentage'
+    'VATPercentage': 'OR_BTWPercentage',
+    'Description': 'OR_Omschrijving',
 }
 
 def transform_columns(df, column_mapping, division_code):

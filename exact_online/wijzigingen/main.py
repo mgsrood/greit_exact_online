@@ -9,6 +9,7 @@ from modules.type_mapping import convert_column_types, CrediteurenOpenstaandTypi
 from modules.table_mapping import transform_columns, CrediteurenOpenstaand, DebiteurenOpenstaand, GrootboekMutaties, GrootboekRubriek, Grootboekrekening, Relaties, RelatieKeten, Budget, GrootboekMapping, ReportingBalance, Voorraad, Artikelen, ArtikelenExtraVelden, ArtikelGroepen, Verkoopfacturen, VerkoopOrders, Verkoopkansen, Offertes
 from modules.data_transformation import append_invoice_lines, append_order_lines, append_quotation_lines
 from modules.get_request import get_request
+import pandas as pd
 
 if __name__ == "__main__":
 
@@ -175,7 +176,7 @@ if __name__ == "__main__":
                         print("Reset sync")
                         logging(finn_it_connection_string, klantnaam, f"Reset sync", script_id, script, division_code)
                         endpoints = {
-                            "Offertes": f"bulk/CRM/Quotations?$filter=Modified ge datetime'{laatste_sync}'&$select=QuotationID,QuotationNumber,VersionNumber,SalesPersonFullName,Currency,Description,StatusDescription,OrderAccount,Opportunity,QuotationDate,ClosingDate,CloseDate,DeliveryDate,Remarks,YourRef,AmountDC,QuotationLines/ID,QuotationLines/AmountDC,QuotationLines/CostCenterDescription,QuotationLines/CostUnitDescription,QuotationLines/Description,QuotationLines/Discount,QuotationLines/Item,QuotationLines/LineNumber,QuotationLines/Quantity,QuotationLines/UnitDescription,QuotationLines/UnitPrice,QuotationLines/VATAmountFC,QuotationLines/VATPercentage&$expand=QuotationLines",
+                            "Offertes": f"bulk/CRM/Quotations?$select=QuotationID,QuotationNumber,VersionNumber,SalesPersonFullName,Currency,Description,StatusDescription,OrderAccount,Opportunity,QuotationDate,ClosingDate,CloseDate,DeliveryDate,Remarks,YourRef,AmountDC,QuotationLines/ID,QuotationLines/AmountDC,QuotationLines/CostCenterDescription,QuotationLines/CostUnitDescription,QuotationLines/Description,QuotationLines/Discount,QuotationLines/Item,QuotationLines/LineNumber,QuotationLines/Quantity,QuotationLines/UnitDescription,QuotationLines/UnitPrice,QuotationLines/VATAmountFC,QuotationLines/VATPercentage&$expand=QuotationLines",
                             "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
                             "Grootboekrekening": f"bulk/financial/GLAccounts?$filter=Modified ge datetime'{laatste_sync}'&$select=ID,BalanceSide,BalanceType,Code,Costcenter,CostcenterDescription,Costunit,CostunitDescription,Description,Division,Type,TypeDescription",
                             "Artikelen": f"bulk/Logistics/Items?&$select=ID,StandardSalesPrice,Class_01,Class_02,Class_03,Class_04,Class_05,Class_06,Class_07,Class_08,Class_09,Class_10,Code,CostPriceCurrency,CostPriceNew,CostPriceStandard,AverageCost,Created,Description,Division,EndDate,ExtraDescription,FreeBoolField_01,FreeBoolField_02,FreeBoolField_03,FreeBoolField_04,FreeBoolField_05,FreeDateField_01,FreeDateField_02,FreeDateField_03,FreeDateField_04,FreeDateField_05,FreeNumberField_01,FreeNumberField_02,FreeNumberField_03,FreeNumberField_04,FreeNumberField_05,FreeNumberField_06,FreeNumberField_07,FreeNumberField_08,FreeTextField_01,FreeTextField_02,FreeTextField_03,FreeTextField_04,FreeTextField_05,FreeTextField_06,FreeTextField_07,FreeTextField_08,FreeTextField_09,FreeTextField_10,ItemGroup,IsMakeItem,IsNewContract,IsOnDemandItem,IsPackageItem,IsPurchaseItem,IsSalesItem,IsSerialItem,IsStockItem,IsSubcontractedItem,IsTaxableItem,IsTime,IsWebshopItem,GrossWeight,NetWeight,NetWeightUnit,Notes,SalesVatCode,SalesVatCodeDescription,SecurityLevel,StartDate,StatisticalCode,Unit,UnitDescription,UnitType",
@@ -303,7 +304,7 @@ if __name__ == "__main__":
 
                             # Start logging
                             logging(finn_it_connection_string, klantnaam, f"Start data mapping", script_id, script, division_code, tabel)
-
+                            
                             # Tabel mapping
                             mapping_dict = {
                                 "CrediteurenOpenstaand": CrediteurenOpenstaand,
@@ -463,7 +464,7 @@ if __name__ == "__main__":
                                 "Verkoopfacturen": "F_AdministratieCode",
                                 "VerkoopOrders": "O_AdministratieCode",
                                 "Verkoopkansen": "AdministratieCode",
-                                "Offertes": "AdministratieCode"
+                                "Offertes": "O_AdministratieCode"
                                 
                             }
 
@@ -474,7 +475,7 @@ if __name__ == "__main__":
                                 print(f"Geen administratie kolom gevonden voor tabel: {tabel}")
                                 logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen administratie kolom gevonden", script_id, script, division_code, tabel)
                                 continue
-
+                            
                             # Schrijf de DataFrame naar de database
                             try:
                                 write_to_database(df_transformed, tabel, connection_string, unique_column, administration_column, table_mode, laatste_sync)
