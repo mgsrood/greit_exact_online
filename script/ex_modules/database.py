@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, event, text
+from ex_modules.log import log
 from datetime import datetime
-from modules.log import log
 import sqlalchemy
 import urllib
 import pyodbc

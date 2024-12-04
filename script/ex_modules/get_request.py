@@ -1,12 +1,14 @@
-from modules.logging import logging
-from modules.database import connect_to_database
-from modules.config import fetch_configurations
-from modules.tokens import get_new_tokens, save_refresh_token, save_access_token
-import time
-import requests
-import re
-import pandas as pd
+from ex_modules.tokens import get_new_tokens, save_refresh_token, save_access_token
+from ex_modules.database import connect_to_database
+from ex_modules.config import fetch_configurations
 import xml.etree.ElementTree as ET
+from ex_modules.log import log
+import pandas as pd
+import requests
+import time
+import re
+
+
 
 def clean_xml_string(xml_string):
     """Remove invalid XML characters from the XML string."""
@@ -18,10 +20,10 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
     data = []
     total_rows = 0 
 
-    # Start logging
+    # Start log
     print(f"Start GET Request voor tabel: {tabel} | {division_code} ({division_code})")
-    logging(finn_it_connection_string, klantnaam, f"Start GET Request", script_id, script, division_code, tabel)
-    logging(finn_it_connection_string, klantnaam, f"Ophalen configuratiegegevens", script_id, script, division_code, tabel)
+    log(finn_it_connection_string, klantnaam, f"Start GET Request", script_id, script, division_code, tabel)
+    log(finn_it_connection_string, klantnaam, f"Ophalen configuratiegegevens", script_id, script, division_code, tabel)
 
     # Ophalen configuratie gegevens
     config_conn = connect_to_database(connection_string)
@@ -38,17 +40,17 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
                 time.sleep(5)
 
         if config_dict is None:
-            # Fout logging
+            # Fout log
             print("Fout bij het ophalen van de configuratiegegevens.")
-            logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het ophalen van de configuratiegegevens", script_id, script, division_code, tabel)
+            log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het ophalen van de configuratiegegevens", script_id, script, division_code, tabel)
             return None
         else:
-            # Succes logging
-            logging(finn_it_connection_string, klantnaam, f"Configuratiegegevens succesvol opgehaald", script_id, script, division_code, tabel)
+            # Succes log
+            log(finn_it_connection_string, klantnaam, f"Configuratiegegevens succesvol opgehaald", script_id, script, division_code, tabel)
     else:
-        # Foutmelding logging
+        # Foutmelding log
         print(f"Fout bij het connecten met de database: {tabel} | {division_code} ({division_code}).")
-        logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het connecten met de database", script_id, script, division_code, tabel)
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het connecten met de database", script_id, script, division_code, tabel)
         return None
 
     # Variabelen definiëren
@@ -131,8 +133,8 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 
             elif response.status_code == 401:
                 print(f"Fout bij het ophalen van gegevens: {response.status_code} - {response.text}")
-                # Logging
-                logging(finn_it_connection_string, klantnaam, f"Ophalen nieuwe access- en refresh token", script_id, script, division_code, tabel)
+                # log
+                log(finn_it_connection_string, klantnaam, f"Ophalen nieuwe access- en refresh token", script_id, script, division_code, tabel)
                 
                 # Ophalen nieuwe tokens
                 oude_refresh_token = refresh_token
@@ -144,8 +146,8 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
                     save_refresh_token(connection_string, new_refresh_token)
                     refresh_token = new_refresh_token
 
-                    # Succes logging
-                    logging(finn_it_connection_string, klantnaam, f"Nieuwe refresh token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
+                    # Succes log
+                    log(finn_it_connection_string, klantnaam, f"Nieuwe refresh token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
 
                     # Opslaan nieuwe access token
                     if new_access_token:
@@ -153,32 +155,32 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
                         save_access_token(connection_string, new_access_token)
                         access_token = new_access_token
 
-                        # Succes logging
+                        # Succes log
                         print(f"Nieuwe access token successvol opgehaald en opgeslagen")
-                        logging(finn_it_connection_string, klantnaam, f"Nieuwe access token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
+                        log(finn_it_connection_string, klantnaam, f"Nieuwe access token successvol opgehaald en opgeslagen", script_id, script, division_code, tabel)
 
                         break
                 
-                    # Foutmelding logging
-                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe access token niet kunnen ophalen", script_id, script, division_code, tabel)
+                    # Foutmelding log
+                    log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe access token niet kunnen ophalen", script_id, script, division_code, tabel)
                     return None
                 
                 else:
-                    # Foutmelding logging
-                    logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen", script_id, script, division_code, tabel)
+                    # Foutmelding log
+                    log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Nieuwe refresh token niet kunnen ophalen", script_id, script, division_code, tabel)
                     return None
             
             else:
                 print(f"Error {response.status_code}: {response.text}")
-                logging(finn_it_connection_string, klantnaam, f"FOUTMELDING | Exact Online API foutmelding | Status code: {response.status_code}", script_id, script, division_code, tabel)
+                log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Exact Online API foutmelding | Status code: {response.status_code}", script_id, script, division_code, tabel)
                 return None
 
     # Maak een DataFrame van de verzamelde gegevens
     if data:
         df = pd.DataFrame(data)
 
-        # Succes logging
-        logging(finn_it_connection_string, klantnaam, f"Data succesvol opgehaald", script_id, script, division_code, tabel)
+        # Succes log
+        log(finn_it_connection_string, klantnaam, f"Data succesvol opgehaald", script_id, script, division_code, tabel)
 
         return df
     
@@ -187,3 +189,25 @@ def get_request(division_code, url, endpoint, connection_string, finn_it_connect
 
         return df
 
+def execute_get_request(division_code, url, endpoint, connection_string, finn_it_connection_string, klantnaam, tabel, script_id, script, division_name):
+
+    # Uitvoeren GET Request
+    df = get_request(division_code, url, endpoint, connection_string, finn_it_connection_string, klantnaam, tabel, script_id, script)
+
+    if df is None:
+        # Foutmelding log
+        print(f"FOUTMELDING | Fout bij het ophalen van data voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het ophalen van data", script_id, script, division_code, tabel)
+        return None, True  # True voor errors_occurred
+
+    elif df.empty:
+        # Geen data opgehaald, maar geen error
+        print(f"Geen data opgehaald voor tabel: {tabel} | {division_name} ({division_code}) | {klantnaam}")
+        log(finn_it_connection_string, klantnaam, f"Geen data opgehaald", script_id, script, division_code, tabel)
+        return None, False  # False, geen fout maar geen data
+
+    else:
+        # Succes log
+        log(finn_it_connection_string, klantnaam, f"Ophalen DataFrame gelukt", script_id, script, division_code, tabel)
+        return df, False  # False, geen fout en data succesvol opgehaald
+    

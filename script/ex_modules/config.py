@@ -1,7 +1,60 @@
-from modules.database import connect_to_database
-from datetime import datetime, timedelta
-from modules.log import log
+from datetime import datetime
+import pyodbc
 import time
+
+def connect_to_database(connection_string):
+    # Retries en delays
+    max_retries = 3
+    retry_delay = 5
+    
+    # Pogingen doen om connectie met database te maken
+    for attempt in range(max_retries):
+        try:
+            conn = pyodbc.connect(connection_string)
+            return conn
+        except Exception as e:
+            print(f"Fout bij poging {attempt + 1} om verbinding te maken: {e}")
+            if attempt < max_retries - 1:  # Wacht alleen als er nog pogingen over zijn
+                time.sleep(retry_delay)
+    
+    # Als het na alle pogingen niet lukt, return None
+    print("Kan geen verbinding maken met de database na meerdere pogingen.")
+    return None
+
+
+def log(logging_connection_string, klantnaam, actie, script_id, script, administratiecode=None, tabel=None):
+    # Actuele datum en tijd ophalen
+    datumtijd = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+
+    # Probeer verbinding te maken met de database
+    logging_conn = connect_to_database(logging_connection_string)
+
+    # Foutmelding geven indien connectie niet gemaakt kan worden
+    if logging_conn is None:
+        print("Kan geen verbinding maken met de logging database na 3 pogingen.")
+        return  # Stop de functie als er geen verbinding is
+
+    try:
+        # Verbinding maken met database
+        cursor = logging_conn.cursor()
+
+        # Query om waarden toe te voegen aan de Logging tabel met parameterbinding
+        insert_query = """
+        INSERT INTO Logging (Klantnaam, Actie, Datumtijd, Administratiecode, Tabel, Script, ScriptID)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+
+        # Voer de INSERT-query uit met parameterbinding
+        cursor.execute(insert_query, (klantnaam, actie, datumtijd, administratiecode, tabel, script, script_id))
+        logging_conn.commit() 
+
+    except Exception as e:
+        print(f"Fout bij het toevoegen van waarden: {e}")
+
+    finally:
+        # Sluit connectie als die is gemaakt
+        if logging_conn:
+            logging_conn.close()
 
 def fetch_script_id(cursor):
     # Voer de query uit om het hoogste ScriptID op te halen
@@ -30,7 +83,7 @@ def determine_script_id(finn_it_connection_string, klant, script):
     else:
         script_id = 1
         
-    log(finn_it_connection_string, klant, f"Script gestart", script, script_id)
+    log(finn_it_connection_string, klant, f"Script gestart", script_id, script)
     
     return script_id
 
@@ -42,8 +95,8 @@ def fetch_all_connection_strings(cursor):
     # Verkrijg alle rijen uit de resultaten
     rows = cursor.fetchall()
     
-    # Extract de connectiestrings uit de resultaten
-    connection_dict = {row[1]: (row[2], row[3]) for row in rows}  
+    # Extract de connectiestrings uit de resultaten, inclusief het softwarepakket
+    connection_dict = {row[1]: (row[2], row[3], row[4]) for row in rows}
     return connection_dict
 
 def create_connection_dict(finn_it_connection_string, klantnaam, script, script_id):
@@ -53,9 +106,9 @@ def create_connection_dict(finn_it_connection_string, klantnaam, script, script_
     try:
         database_conn = connect_to_database(finn_it_connection_string)
     except Exception as e:
-        log(finn_it_connection_string, klantnaam, f"Verbinding met database mislukt, foutmelding: {e}", script, script_id)
+        log(finn_it_connection_string, klantnaam, f"Verbinding met database mislukt, foutmelding: {e}", script_id, script)
     if database_conn:
-        log(finn_it_connection_string, klantnaam, f"Verbinding met database opnieuw geslaagd", script, script_id)
+        log(finn_it_connection_string, klantnaam, f"Verbinding met database opnieuw geslaagd", script_id, script)
         cursor = database_conn.cursor()
         connection_dict = None
         for attempt in range(max_retries):
@@ -67,17 +120,17 @@ def create_connection_dict(finn_it_connection_string, klantnaam, script, script_
                 time.sleep(retry_delay)
         database_conn.close()
         if connection_dict:
-            log(finn_it_connection_string, klantnaam, f"Ophalen connectiestrings gestart", script, script_id)
+            log(finn_it_connection_string, klantnaam, f"Ophalen connectiestrings gestart", script_id, script)
 
         else:
             print(f"FOUTMELDING | Ophalen connectiestrings mislukt na meerdere pogingen")
-            log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Ophalen connectiestrings mislukt na meerdere pogingen", script, script_id)
+            log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Ophalen connectiestrings mislukt na meerdere pogingen", script_id, script)
             
     else:
         print(f"FOUTMELDING | Verbinding met database mislukt na meerdere pogingen")
-        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met database mislukt na meerdere pogingen", script, script_id)
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Verbinding met database mislukt na meerdere pogingen", script_id, script)
     
-    log(finn_it_connection_string, klantnaam, "Configuratie dictionary opgehaald", script, script_id)
+    log(finn_it_connection_string, klantnaam, "Configuratie dictionary opgehaald", script_id, script)
     
     return connection_dict
 

@@ -1,4 +1,4 @@
-from modules.log import log
+from ex_modules.log import log
 import pandas as pd
 
 CrediteurenOpenstaand = {

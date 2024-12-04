@@ -1,4 +1,4 @@
-from modules.log import log
+from ex_modules.log import log
 import pandas as pd
 
 def append_invoice_lines(df):
@@ -139,7 +139,9 @@ def apply_appending_functions(df, tabel, klantnaam, finn_it_connection_string, s
         elif tabel == "Offertes":
             df = append_quotation_lines(df)
         else:
-            raise ValueError(f"Onbekend tabel type: {tabel}")
+            # Geen actie als tabel niet herkend wordt
+            log(finn_it_connection_string, klantnaam, f"Onbekend tabel type, geen actie uitgevoerd", script_id, script, division_code, tabel)
+            return df
 
         # Succes log
         log(finn_it_connection_string, klantnaam, f"Data transformatie gelukt", script_id, script, division_code, tabel)
@@ -149,6 +151,6 @@ def apply_appending_functions(df, tabel, klantnaam, finn_it_connection_string, s
         print(f"FOUTMELDING | Fout bij het transformeren van {tabel} | {division_name} ({division_code}) | {klantnaam}")
         log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het transformeren: {e}", script_id, script, division_code, tabel)
         print(e)
-        return None
+        return df
 
     return df

@@ -18,7 +18,7 @@ def logging(logging_connection_string, klantnaam, actie, script_id, script, admi
         # Verbinding maken met database
         cursor = logging_conn.cursor()
 
-        # Query om waarden toe te voegen aan de Logging tabel met parameterbinding
+        # Query om waarden toe te voegen aan de log tabel met parameterbinding
         insert_query = """
         INSERT INTO Logging (Klantnaam, Actie, Datumtijd, Administratiecode, Tabel, Script, ScriptID)
         VALUES (?, ?, ?, ?, ?, ?, ?)

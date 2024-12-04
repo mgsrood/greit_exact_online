@@ -1,4 +1,4 @@
-from modules.log import log
+from ex_modules.log import log
 from decimal import Decimal
 import pandas as pd
 import numpy as np

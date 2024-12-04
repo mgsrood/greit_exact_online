@@ -1,7 +1,5 @@
+from ex_modules.database import connect_to_database
 import requests
-import pyodbc
-from datetime import datetime
-from modules.database import connect_to_database
 
 def get_new_tokens(refresh_token, client_id, client_secret, finn_it_connection_string, klantnaam):
     # Endpoint voor het verkrijgen van een nieuwe access token
