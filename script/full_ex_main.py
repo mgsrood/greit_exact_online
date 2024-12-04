@@ -4,7 +4,7 @@ from ex_modules.data_transformation import apply_appending_functions
 from ex_modules.type_mapping import apply_type_conversion
 from ex_modules.table_mapping import apply_column_mapping
 from ex_modules.get_request import execute_get_request
-from ex_modules.full_endpoints import endpoints
+from ex_modules.full_endpoints import get_endpoints
 from datetime import datetime, timedelta
 from ex_modules.log import log
 
@@ -29,6 +29,9 @@ def full_ex_main(connection_string, finn_it_connection_string, klantnaam, script
         log(finn_it_connection_string, klantnaam, f"Start GET Requests voor nieuwe divisie", script_id, script, division_code)
 
         url = f"https://start.exactonline.nl/api/v1/{division_code}/"
+        
+        # Endpoints ophalen
+        endpoints = get_endpoints()
         
         # Endpoint loop
         for tabel, endpoint in endpoints.items():

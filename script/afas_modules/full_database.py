@@ -98,9 +98,7 @@ def write_to_database(df, tabel, connection_string, unique_columns, division_col
 
 def clear_table(connection_string, table, mode, omgeving_id):
     
-    last_year = datetime.now() - timedelta(days=365)
-    start_date = last_year.replace(day=1, month=1, hour=0, minute=0, second=0, microsecond=0)
-    formatted_start_date = start_date.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    last_year = datetime.now().year - 1
     
     try:
         # Maak verbinding met de database
@@ -111,8 +109,9 @@ def clear_table(connection_string, table, mode, omgeving_id):
         if mode == 'truncate':
             # Probeer de tabel leeg te maken met TRUNCATE TABLE
             try:
-                cursor.execute(f"DELETE FROM {table} WHERE OmgevingID = ? AND Gewijzigd_Op >= ?", omgeving_id, formatted_start_date)
+                cursor.execute(f"DELETE FROM {table} WHERE OmgevingID = ? AND Boekjaar >= ?", omgeving_id, last_year)
                 rows_deleted = cursor.rowcount
+                print("Rows deleted:", rows_deleted)
             except pyodbc.Error as e:
                 print(f"DELETE FROM {table} failed: {e}")
         elif mode == 'none':

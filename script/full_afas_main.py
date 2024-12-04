@@ -43,7 +43,7 @@ def full_afas_main(connection_string, klantnaam, script, script_id, finn_it_conn
                 continue
             
             # Connector ophalen
-            connectors = get_connectors(laatste_sync)
+            connectors = get_connectors()
             if table in connectors:
                 connector = connectors[table]
 

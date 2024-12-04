@@ -49,7 +49,6 @@ def full_main():
                 # Foutmelding logging en print
                 print(f"Error: {e}")
                 log(finn_it_connection_string, klantnaam, f"Error: {e}", script_id, script)
-        
         else:
             print(f"Onbekende applicatie voor klant: {klantnaam}")
             log(finn_it_connection_string, klantnaam, f"Onbekende applicatie", script_id, script)
