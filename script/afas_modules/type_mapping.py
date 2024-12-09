@@ -43,6 +43,7 @@ GrootboekrekeningTyping = {
     'Rubriek_Code': 'nvarchar',
     'Balans_Code': 'nvarchar',
     'Gewijzigd_Op': 'date',
+    'Intercompany': 'bit',
 }
 
 BudgetTyping = {
@@ -126,8 +127,11 @@ def convert_column_types(df, column_types):
                 elif dtype == 'decimal':
                     df[column] = df[column].apply(lambda x: Decimal(x) if pd.notna(x) else None)
                 elif dtype == 'bit':
-                    df[column] = df[column].str.lower().map({'true': True, 'false': False, '1': True, '0': False})
-                    df[column] = df[column].astype(bool)
+                    # Controleer of de kolom stringwaarden bevat
+                    if df[column].dtype == 'object':
+                        df[column] = df[column].str.lower().map({'true': True, 'false': False, '1': True, '0': False})
+                    # Vul NaN-waarden in met None (voor SQL NULL)
+                    df[column] = df[column].where(pd.notnull(df[column]), None)
                 elif dtype == 'date':
                     df[column] = pd.to_datetime(df[column], errors='coerce').dt.date
                 elif dtype == 'datetime':

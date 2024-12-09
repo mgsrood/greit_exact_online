@@ -69,6 +69,9 @@ def afas_main(connection_string, klantnaam, script, script_id, finn_it_connectio
                     errors_occurred = True
                     continue
                 
+                pd.set_option('display.max_columns', None)
+                print(df.head())
+                
                 # Type conversie toepassen
                 print("Start data type conversie")
                 df_converted = apply_type_conversion(df, finn_it_connection_string, klantnaam, script_id, script, table, omgeving_id)
