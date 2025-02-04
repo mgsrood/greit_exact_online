@@ -1,4 +1,4 @@
-from ex_modules.config import save_laatste_sync, save_reporting_year
+from afas_modules.config import save_laatste_sync
 from datetime import datetime
 import pyodbc
 import time
@@ -67,11 +67,10 @@ def sync_log(klantnaam, nieuwe_laatste_sync, errors_occurred, connection_string,
         try:    
             # Update laatste sync en reporting year
             save_laatste_sync(connection_string, nieuwe_laatste_sync)
-            '''save_reporting_year(connection_string)'''
 
             # Succes log
-            print(f"Laatste sync succesvol geüpdate voor klant: {klantnaam}")
-            log(finn_it_connection_string, klantnaam, f"Laatste sync succesvol geüpdate", script_id, script, omgeving_id, table)
+            print(f"Laatste sync en reporting year succesvol geüpdate voor klant: {klantnaam}")
+            log(finn_it_connection_string, klantnaam, f"Laatste sync en reporting year succesvol geüpdate", script_id, script, omgeving_id, table)
 
         except Exception as e:
             # Foutmelding log en print
