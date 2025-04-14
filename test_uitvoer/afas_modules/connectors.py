@@ -22,6 +22,3 @@ def get_connectors(laatste_sync):
 if __name__ == "__main__":
     connectors = get_connectors("2016-01-01T00:00:00")
     print(connectors)
-
-
-filter = "?filterfieldids=Gewijzigd_Op&filtervalues=2016-01-01T00:00:00&operatortypes=2"

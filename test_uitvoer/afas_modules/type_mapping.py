@@ -43,7 +43,6 @@ GrootboekrekeningTyping = {
     'Rubriek_Code': 'nvarchar',
     'Balans_Code': 'nvarchar',
     'Gewijzigd_Op': 'date',
-    'Intercompany': 'bit',
 }
 
 BudgetTyping = {

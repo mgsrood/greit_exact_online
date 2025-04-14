@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, event, text
-from afas_modules.log import log
+from ex_modules.log import log
 from datetime import datetime
 import sqlalchemy
 import urllib
@@ -26,7 +26,6 @@ def connect_to_database(connection_string):
     return None
 
 def write_to_database(df, tabel, connection_string, unique_columns, division_column, mode, laatste_sync):
-
     db_params = urllib.parse.quote_plus(connection_string)
     engine = create_engine(f"mssql+pyodbc:///?odbc_connect={db_params}")
 
@@ -60,21 +59,15 @@ def write_to_database(df, tabel, connection_string, unique_columns, division_col
                     df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
 
                     # Constructeer de ON clause voor de MERGE-query
-                    unique_conditions = [f"target.{col} = source.{col}" for col in unique_columns]
-                    if division_column:
-                        unique_conditions.append(f"target.{division_column} = source.{division_column}")
-                    on_clause = " AND ".join(unique_conditions)
-                    
-                    # Constructeer de UPDATE SET clause voor de MERGE-query
-                    update_set = ", ".join([f"target.{col} = source.{col}" for col in df.columns if col not in unique_columns and col != division_column])
-                    
+                    on_clause = " AND ".join([f"target.{col} = source.{col}" for col in unique_columns])
+
                     # Gebruik daarna een MERGE-query om de data te synchroniseren met de doel-tabel
                     merge_query = f"""
                     MERGE {tabel} AS target
                     USING (SELECT * FROM {temp_table_name}) AS source
-                    ON ({on_clause})
+                    ON ({on_clause} AND target.{division_column} = source.{division_column})
                     WHEN MATCHED THEN
-                        UPDATE SET {update_set}
+                        UPDATE SET {', '.join([f'target.{col} = source.{col}' for col in df.columns if col not in unique_columns and col != division_column])}
                     WHEN NOT MATCHED THEN
                         INSERT ({', '.join(df.columns)})
                         VALUES ({', '.join([f'source.{col}' for col in df.columns])});
@@ -96,7 +89,7 @@ def write_to_database(df, tabel, connection_string, unique_columns, division_col
 
     print(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {tabel}")
 
-def clear_table(connection_string, table, mode, omgeving_id):
+def clear_table(connection_string, table, mode, reporting_year, division_code):
     try:
         # Maak verbinding met de database
         connection = pyodbc.connect(connection_string)
@@ -106,10 +99,14 @@ def clear_table(connection_string, table, mode, omgeving_id):
         if mode == 'truncate':
             # Probeer de tabel leeg te maken met TRUNCATE TABLE
             try:
-                cursor.execute(f"DELETE FROM {table} WHERE OmgevingID = ?", omgeving_id)
+                cursor.execute(f"DELETE FROM {table} WHERE AdministratieCode = ?", division_code)
                 rows_deleted = cursor.rowcount
             except pyodbc.Error as e:
-                print(f"DELETE FROM {table} failed: {e}")
+                print(f"DELETE FROM {table} WHERE AdministratieCode = {division_code} failed: {e}")
+        elif mode == 'reporting_year':
+            # Verwijder rijen waar ReportingYear >= reporting_year en AdministratieCode = division_code
+            cursor.execute(f"DELETE FROM {table} WHERE ReportingYear >= ? AND AdministratieCode = ?", reporting_year, division_code)
+            rows_deleted = cursor.rowcount
         elif mode == 'none':
             # Doe niets
             print(f"Geen actie ondernomen voor tabel {table}.")
@@ -117,6 +114,7 @@ def clear_table(connection_string, table, mode, omgeving_id):
         # Commit de transactie
         connection.commit()
         print(f"Actie '{mode}' succesvol uitgevoerd voor tabel {table}.")
+        actie = f"Actie '{mode}' succesvol uitgevoerd voor tabel {table}."
     except pyodbc.Error as e:
         print(f"Fout bij het uitvoeren van de actie '{mode}' voor tabel {table}: {e}")
     finally:
@@ -124,27 +122,32 @@ def clear_table(connection_string, table, mode, omgeving_id):
         cursor.close()
         connection.close()
     
-    return rows_deleted
+    return actie, rows_deleted
 
-def apply_table_clearing(connection_string, finn_it_connection_string, klantnaam, script_id, script, tabel, omgeving_id):
+def apply_table_clearing(connection_string, reporting_year, finn_it_connection_string, klantnaam, script_id, script, division_code, tabel):
     
-    log(finn_it_connection_string, klantnaam, f"Start mogelijk verwijderen rijen of complete tabel", script_id, script, omgeving_id, tabel)
+    log(finn_it_connection_string, klantnaam, f"Start mogelijk verwijderen rijen of complete tabel", script_id, script, division_code, tabel)
 
     # Table modes for deleting rows or complete table
     table_modes = {
-        "Grootboekrekening": "truncate",
+        "Voorraad": "none",
+        "Grootboekrekening": "none",
         "GrootboekRubriek": "truncate",
         "GrootboekMutaties": "none",
-        "Budget": "truncate",
-        "Divisions": "truncate",
-        "Relaties": "truncate",
-        "Projecten": "truncate",
-        "Urenregistratie": "truncate",
-        "Verlof": "truncate",
-        "VerzuimVerloop": "truncate",
-        "VerzuimUren": "truncate",
-        "Medewerkers": "truncate",
-        "Contracten": "truncate",
+        "CrediteurenOpenstaand": "truncate",
+        "DebiteurenOpenstaand": "truncate",
+        "Relaties": "none",
+        "RelatieKeten": "none",
+        "Budget": "none",
+        "GrootboekMapping": "truncate",
+        "ReportingBalance": "reporting_year",
+        "Artikelen": "none",
+        "ArtikelenExtraVelden": "none",
+        "ArtikelGroepen": "none",
+        "Verkoopfacturen": "none",
+        "VerkoopOrders": "none",
+        "Verkoopkansen": "none",
+        "Offertes": "none",
     }
 
     table_mode = table_modes.get(tabel)
@@ -153,107 +156,123 @@ def apply_table_clearing(connection_string, finn_it_connection_string, klantnaam
     if table_mode is None:
         # Foutmelding log en print
         print(f"Geen actie gevonden voor tabel: {tabel}")
-        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen actie gevonden", script_id, script, omgeving_id, tabel)
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen actie gevonden", script_id, script, division_code, tabel)
         return False
 
     try:
         # Clear the table
-        rows_deleted = clear_table(connection_string, tabel, table_mode, omgeving_id)
+        actie, rows_deleted = clear_table(connection_string, tabel, table_mode, reporting_year, division_code)
 
         # Succes en start log
-        log(finn_it_connection_string, klantnaam, f"Totaal verwijderde rijen {rows_deleted}", script_id, script, omgeving_id, tabel)
+        log(finn_it_connection_string, klantnaam, f"Totaal verwijderde rijen {rows_deleted}", script_id, script, division_code, tabel)
         
         return True
     
     except Exception as e:
         print(f"Fout bij het verwijderen van rijen of leegmaken van de tabel: {e}")
-        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het verwijderen van rijen of leegmaken van de tabel: {e}", script_id, script, omgeving_id, tabel)
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het verwijderen van rijen of leegmaken van de tabel: {e}", script_id, script, division_code, tabel)
         return False
 
-def apply_table_writing(df, connection_string, finn_it_connection_string, klantnaam, script_id, script, table, laatste_sync, omgeving_id):
+def apply_table_writing(df, connection_string, finn_it_connection_string, klantnaam, script_id, script, division_code, tabel, laatste_sync):
     
-    log(finn_it_connection_string, klantnaam, f"Start toevoegen rijen naar database", script_id, script, omgeving_id, table)
+    log(finn_it_connection_string, klantnaam, f"Start toevoegen rijen naar database", script_id, script, division_code, tabel)
 
     # Table modes for deleting rows or complete table
     table_modes = {
-        "Grootboekrekening": "truncate",
+        "Voorraad": "none",
+        "Grootboekrekening": "none",
         "GrootboekRubriek": "truncate",
         "GrootboekMutaties": "none",
-        "Budget": "truncate",
-        "Divisions": "truncate",
-        "Relaties": "truncate",
-        "Projecten": "truncate",
-        "Urenregistratie": "truncate",
-        "Verlof": "truncate",
-        "VerzuimVerloop": "truncate",
-        "VerzuimUren": "truncate",
-        "Medewerkers": "truncate",
-        "Contracten": "truncate",
+        "CrediteurenOpenstaand": "truncate",
+        "DebiteurenOpenstaand": "truncate",
+        "Relaties": "none",
+        "RelatieKeten": "none",
+        "Budget": "none",
+        "GrootboekMapping": "truncate",
+        "ReportingBalance": "reporting_year",
+        "Artikelen": "none",
+        "ArtikelenExtraVelden": "none",
+        "ArtikelGroepen": "none",
+        "Verkoopfacturen": "none",
+        "VerkoopOrders": "none",
+        "Verkoopkansen": "none",
+        "Offertes": "none",
     }
 
-    table_mode = table_modes.get(table)
+    table_mode = table_modes.get(tabel)
 
     # Unieke kolom per tabel
     unique_columns = {
-        "Grootboekrekening": ["OmgevingID", "GrootboekID"],
-        "GrootboekRubriek": ["OmgevingID", "Grootboek_RubriekID"],
-        "GrootboekMutaties": ["OmgevingID", "Boekjaar", "Code_Dagboek", "Nummer_Journaalpost", "Volgnummer_Journaalpost"],
-        "Budget": ["OmgevingID", "Budget_Scenario_Code", "GrootboekID", "Boekjaar", "Boekperiode"],
-        "Divisions": ["OmgevingID"],
-        "Medewerkers": ["OmgevingID", "Administratie_Code", "GUID"],
-        "Relaties": ["OmgevingID", "Naam"],
-        "Projecten": ["OmgevingID", "Administratie_Code", "ProjectID"],
-        "Urenregistratie": ["OmgevingID", "Administratie_Code", "Urenregistratie_GUID"],
-        "Verlof": [],
-        "VerzuimVerloop": ["OmgevingID", "Verzuimmelding_GUID"],
-        "VerzuimUren": ["OmgevingID", "Administratie_Code"],
-        "Contracten": ["OmgevingID", "Administratie_Code", "Medewerker_GUID", "Arbeids_ContractID"],
+        "Voorraad": ["ID"],
+        "Grootboekrekening": ["ID"],
+        "GrootboekRubriek": ["ID"],
+        "GrootboekMutaties": ["ID"],
+        "CrediteurenOpenstaand": ["ID"],
+        "DebiteurenOpenstaand": ["ID"],
+        "Relaties": ["ID"],
+        "RelatieKeten": ["ID"],
+        "Budget": ["ID"],
+        "GrootboekMapping": ["ID"],
+        "ReportingBalance": ["ID"],
+        "Artikelen": ["ID"],
+        "ArtikelenExtraVelden": ["ArtikelID", "Nummer"],
+        "ArtikelGroepen": ["ID"],
+        "Verkoopfacturen": ["FR_FactuurregelID"],
+        "VerkoopOrders": ["OR_OrderRegelID"],
+        "Verkoopkansen": ["VerkoopkansID"],
+        "Offertes": ["O_Versie", "OR_OfferteRegelID"]
     }
     
     # Unieke kolom ophalen voor de specifieke tabel
-    unique_column = unique_columns.get(table)
+    unique_column = unique_columns.get(tabel)
     if unique_column is None:
         # Foutmelding log en print
-        print(f"Geen unieke kolom gevonden voor tabel: {table}")
-        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen unieke kolom gevonden", script_id, script, omgeving_id, table)
+        print(f"Geen unieke kolom gevonden voor tabel: {tabel}")
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen unieke kolom gevonden", script_id, script, division_code, tabel)
         return False
 
     # Administratie kolom per tabel
     administration_columns = {
-        "Grootboekrekening": "Administratie_Code",
-        "GrootboekRubriek": "",
-        "GrootboekMutaties": "Administratie_Code",
-        "Budget": "Administratie_Code",
-        "Divisions": "Administratie_Code",
-        "Relaties": "",
-        "Projecten": "Administratie_Code",
-        "Urenregistratie": "Administratie_Code",
-        "Verlof": "Administratie_Code",
-        "VerzuimVerloop": "",
-        "VerzuimUren": "Administratie_Code",
-        "Medewerkers": "Administratie_Code",
-        "Contracten": "Administratie_Code",
+        "Voorraad": "AdministratieCode",
+        "Grootboekrekening": "AdministratieCode",
+        "GrootboekRubriek": "AdministratieCode",
+        "GrootboekMutaties": "AdministratieCode",
+        "CrediteurenOpenstaand": "AdministratieCode",
+        "DebiteurenOpenstaand": "AdministratieCode",
+        "Relaties": "AdministratieCode",
+        "RelatieKeten": "AdministratieCode",
+        "Budget": "AdministratieCode",
+        "GrootboekMapping": "AdministratieCode",
+        "ReportingBalance": "AdministratieCode",
+        "Artikelen": "AdministratieCode",
+        "ArtikelenExtraVelden": "AdministratieCode",
+        "ArtikelGroepen": "AdministratieCode",
+        "Verkoopfacturen": "F_AdministratieCode",
+        "VerkoopOrders": "O_AdministratieCode",
+        "Verkoopkansen": "AdministratieCode",
+        "Offertes": "O_AdministratieCode"
+        
     }
 
     # Administratie kolom ophalen voor de specifieke tabel
-    administration_column = administration_columns.get(table)
+    administration_column = administration_columns.get(tabel)
     if administration_column is None:
         # Foutmelding log en print
-        print(f"Geen administratie kolom gevonden voor tabel: {table}")
-        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen administratie kolom gevonden", script_id, script, omgeving_id, table)
+        print(f"Geen administratie kolom gevonden voor tabel: {tabel}")
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Geen administratie kolom gevonden", script_id, script, division_code, tabel)
         return False
     
     # Schrijf de DataFrame naar de database
     try:
-        write_to_database(df, table, connection_string, unique_column, administration_column, table_mode, laatste_sync)
+        write_to_database(df, tabel, connection_string, unique_column, administration_column, table_mode, laatste_sync)
         
         # Succeslog bij succes
-        log(finn_it_connection_string, klantnaam, f"Succesvol {len(df)} rijen toegevoegd aan de database", script_id, script, omgeving_id, table)
+        log(finn_it_connection_string, klantnaam, f"Succesvol {len(df)} rijen toegevoegd aan de database", script_id, script, division_code, tabel)
         
         return True
         
     except Exception as e:
         # Foutmelding log en print
-        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het toevoegen naar database | Foutmelding: {str(e)}", script_id, script, omgeving_id, table)
+        log(finn_it_connection_string, klantnaam, f"FOUTMELDING | Fout bij het toevoegen naar database | Foutmelding: {str(e)}", script_id, script, division_code, tabel)
         print(f"Fout bij het toevoegen naar database: {e}")
         return False

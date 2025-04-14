@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, event, text
+from datetime import datetime, timedelta
 from afas_modules.log import log
-from datetime import datetime
 import sqlalchemy
 import urllib
 import pyodbc
@@ -97,6 +97,9 @@ def write_to_database(df, tabel, connection_string, unique_columns, division_col
     print(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {tabel}")
 
 def clear_table(connection_string, table, mode, omgeving_id):
+    
+    last_year = datetime.now().year - 1
+    
     try:
         # Maak verbinding met de database
         connection = pyodbc.connect(connection_string)
@@ -106,8 +109,9 @@ def clear_table(connection_string, table, mode, omgeving_id):
         if mode == 'truncate':
             # Probeer de tabel leeg te maken met TRUNCATE TABLE
             try:
-                cursor.execute(f"DELETE FROM {table} WHERE OmgevingID = ?", omgeving_id)
+                cursor.execute(f"DELETE FROM {table} WHERE OmgevingID = ? AND Boekjaar >= ?", omgeving_id, last_year)
                 rows_deleted = cursor.rowcount
+                print("Rows deleted:", rows_deleted)
             except pyodbc.Error as e:
                 print(f"DELETE FROM {table} failed: {e}")
         elif mode == 'none':
@@ -132,19 +136,7 @@ def apply_table_clearing(connection_string, finn_it_connection_string, klantnaam
 
     # Table modes for deleting rows or complete table
     table_modes = {
-        "Grootboekrekening": "truncate",
-        "GrootboekRubriek": "truncate",
-        "GrootboekMutaties": "none",
-        "Budget": "truncate",
-        "Divisions": "truncate",
-        "Relaties": "truncate",
-        "Projecten": "truncate",
-        "Urenregistratie": "truncate",
-        "Verlof": "truncate",
-        "VerzuimVerloop": "truncate",
-        "VerzuimUren": "truncate",
-        "Medewerkers": "truncate",
-        "Contracten": "truncate",
+        "GrootboekMutaties": "truncate",
     }
 
     table_mode = table_modes.get(tabel)
@@ -176,19 +168,7 @@ def apply_table_writing(df, connection_string, finn_it_connection_string, klantn
 
     # Table modes for deleting rows or complete table
     table_modes = {
-        "Grootboekrekening": "truncate",
-        "GrootboekRubriek": "truncate",
-        "GrootboekMutaties": "none",
-        "Budget": "truncate",
-        "Divisions": "truncate",
-        "Relaties": "truncate",
-        "Projecten": "truncate",
-        "Urenregistratie": "truncate",
-        "Verlof": "truncate",
-        "VerzuimVerloop": "truncate",
-        "VerzuimUren": "truncate",
-        "Medewerkers": "truncate",
-        "Contracten": "truncate",
+        "GrootboekMutaties": "truncate",
     }
 
     table_mode = table_modes.get(table)
@@ -200,14 +180,6 @@ def apply_table_writing(df, connection_string, finn_it_connection_string, klantn
         "GrootboekMutaties": ["OmgevingID", "Boekjaar", "Code_Dagboek", "Nummer_Journaalpost", "Volgnummer_Journaalpost"],
         "Budget": ["OmgevingID", "Budget_Scenario_Code", "GrootboekID", "Boekjaar", "Boekperiode"],
         "Divisions": ["OmgevingID"],
-        "Medewerkers": ["OmgevingID", "Administratie_Code", "GUID"],
-        "Relaties": ["OmgevingID", "Naam"],
-        "Projecten": ["OmgevingID", "Administratie_Code", "ProjectID"],
-        "Urenregistratie": ["OmgevingID", "Administratie_Code", "Urenregistratie_GUID"],
-        "Verlof": [],
-        "VerzuimVerloop": ["OmgevingID", "Verzuimmelding_GUID"],
-        "VerzuimUren": ["OmgevingID", "Administratie_Code"],
-        "Contracten": ["OmgevingID", "Administratie_Code", "Medewerker_GUID", "Arbeids_ContractID"],
     }
     
     # Unieke kolom ophalen voor de specifieke tabel
@@ -220,19 +192,7 @@ def apply_table_writing(df, connection_string, finn_it_connection_string, klantn
 
     # Administratie kolom per tabel
     administration_columns = {
-        "Grootboekrekening": "Administratie_Code",
-        "GrootboekRubriek": "",
         "GrootboekMutaties": "Administratie_Code",
-        "Budget": "Administratie_Code",
-        "Divisions": "Administratie_Code",
-        "Relaties": "",
-        "Projecten": "Administratie_Code",
-        "Urenregistratie": "Administratie_Code",
-        "Verlof": "Administratie_Code",
-        "VerzuimVerloop": "",
-        "VerzuimUren": "Administratie_Code",
-        "Medewerkers": "Administratie_Code",
-        "Contracten": "Administratie_Code",
     }
 
     # Administratie kolom ophalen voor de specifieke tabel
