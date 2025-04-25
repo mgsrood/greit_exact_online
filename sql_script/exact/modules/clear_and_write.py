@@ -150,11 +150,36 @@ def create_engine_with_auth(connection_string, auth_method="SQL", token_struct=N
     else:
         raise ValueError(f"Ongeldige authenticatie methode: {auth_method}. Gebruik 'SQL' of 'MEI'")
 
-def clear_data(engine, table, config, division_code=None, reporting_year=None):
+def clear_data(engine, table, config, division_code=None, reporting_year=None, laatste_sync=None):
     """Leeg een tabel volgens de gegeven configuratie."""
     try:
         with engine.connect() as connection:
             try:
+                # Controleer laatste_sync als die is meegegeven
+                if laatste_sync:
+                    try:
+                        huidige_datum = datetime.now()
+                        laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
+                        verschil_in_dagen = (huidige_datum - laatste_sync_datum).days
+                        verschil_in_jaren = verschil_in_dagen / 365.0
+                        
+                        if verschil_in_jaren > 1.2:
+                            logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar volledige truncate voor {table}")
+                            if division_code is not None:
+                                result = connection.execute(
+                                    text(f"DELETE FROM {table} WHERE {config.administration_column} = :division_code"),
+                                    {"division_code": division_code}
+                                )
+                                rows_deleted = result.rowcount
+                            else:
+                                result = connection.execute(text(f"TRUNCATE TABLE {table}"))
+                                rows_deleted = 0  # TRUNCATE geeft geen rowcount
+                            connection.commit()
+                            logging.info(f"Tabel {table} succesvol geleegd voor divisie {division_code}.")
+                            return rows_deleted
+                    except (ValueError, TypeError) as e:
+                        logging.warning(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
+
                 # Log foreign key constraints
                 if table == "VerkoopOrders":
                     fk_query = """
@@ -240,13 +265,14 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None):
         logging.error(f"Fout bij het maken van database verbinding voor tabel {table}: {str(e)}")
         return 0
 
-def apply_table_clearing(connection_string, table, division_code=None, reporting_year=None, config_manager=None):
+def apply_table_clearing(connection_string, table, division_code=None, reporting_year=None, laatste_sync=None, config_manager=None):
     """Pas tabel leegmaak operatie toe.
     
     Args:
         table: De naam van de tabel
         reporting_year: Het rapportagejaar (optioneel)
         division_code: De divisie code (optioneel)
+        laatste_sync: De laatste sync datum (optioneel)
         config_manager: De configuratie manager (optioneel)
     """
     try:
@@ -279,7 +305,7 @@ def apply_table_clearing(connection_string, table, division_code=None, reporting
             token_struct
         )
         
-        rows_deleted = clear_data(engine, table, config, division_code, reporting_year)
+        rows_deleted = clear_data(engine, table, config, division_code, reporting_year, laatste_sync)
         return rows_deleted > 0
 
     except Exception as e:
