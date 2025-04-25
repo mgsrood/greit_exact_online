@@ -1,0 +1,1897 @@
+Debtor List
+
+```sql
+{
+    "pagination": {
+        "pageNumber": 1,
+        "pageSize": 20,
+        "firstPage": "https://api.nmbrsapp.com/api/debtors?pageNumber=1&pageSize=20",
+        "lastPage": "https://api.nmbrsapp.com/api/debtors?pageNumber=2&pageSize=20",
+        "totalPages": 2,
+        "totalRecords": 37,
+        "nextPage": "https://api.nmbrsapp.com/api/debtors?pageNumber=2&pageSize=20",
+        "previousPage": null
+    },
+    "data": [
+        {
+            "debtorId": "508987b8-a798-4935-93a3-b795c48d4944",
+            "number": "1028815",
+            "name": "Herbergier Voorthuizen"
+        },
+        {
+            "debtorId": "77448845-eb9c-4c89-b30f-970c97176a54",
+            "number": "105433370",
+            "name": "Herbergier Reeuwijk"
+        },
+        {
+            "debtorId": "a8e926eb-ba87-4050-b96e-995ca2e7959c",
+            "number": "405433020",
+            "name": "Herbergier Oostvoorne"
+        },
+        {
+            "debtorId": "7fc6a0cc-f15d-4f3c-ae68-0fd771767ed0",
+            "number": "405433210",
+            "name": "Herbergier Wognum"
+        },
+        {
+            "debtorId": "55b8cb68-4bb8-4dbc-8e66-fdcb9dca42ac",
+            "number": "410180237",
+            "name": "Herbergier Maria Vught"
+        },
+        {
+            "debtorId": "48a08c0e-517b-48ad-810e-68ce8e01b48f",
+            "number": "1027490",
+            "name": "Herbergier Tiel"
+        },
+        {
+            "debtorId": "dbd1f815-2c5e-44d6-bb0a-11d413a92e2b",
+            "number": "1028809",
+            "name": "Herbergier Nieuw-Vennep"
+        },
+        {
+            "debtorId": "60007e60-cf3e-4757-956f-a9d5fa323569",
+            "number": "1028914",
+            "name": "Herbergier Assen"
+        },
+        {
+            "debtorId": "e0ea9576-c910-4533-ade8-ff342ed9f5ed",
+            "number": "1029458",
+            "name": "Herbergier Almelo (Willemse-De Vries)"
+        },
+        {
+            "debtorId": "490380ea-dad2-4314-93ab-ef826b234119",
+            "number": "405433280",
+            "name": "Herbergier Den Haag"
+        },
+        {
+            "debtorId": "8e8efda0-3650-4250-a6b8-7018f969e06e",
+            "number": "101008216",
+            "name": "Herbergier Harlingen"
+        },
+        {
+            "debtorId": "7f356505-bfef-40b8-9b9d-dc80ea7d5705",
+            "number": "110108680",
+            "name": "Herbergier Hazerswoude Rijndijk"
+        },
+        {
+            "debtorId": "a8958e7b-7a53-4891-a2b3-f2c7d9b581a2",
+            "number": "105433300",
+            "name": "Herbergier Ermelo"
+        },
+        {
+            "debtorId": "3f4c556f-e862-4c10-83e0-c2538a0dfeb9",
+            "number": "405433150",
+            "name": "Herbergier De Ehze"
+        },
+        {
+            "debtorId": "c37248ac-a29c-45b0-8d74-bb15b5d322a9",
+            "number": "410182690",
+            "name": "Herbergier Zoetermeer"
+        },
+        {
+            "debtorId": "116b6700-cf53-452a-886f-9d6a91de4fa5",
+            "number": "410182704",
+            "name": "Herbergier Velp"
+        },
+        {
+            "debtorId": "6cbaad30-6700-441f-b740-0478bf2c6f77",
+            "number": "405433260",
+            "name": "Herbergier Blerick"
+        },
+        {
+            "debtorId": "092126a8-28c5-4f7b-9037-63bef671d0a7",
+            "number": "105433160",
+            "name": "V.O.F. de Kans t.h.o.d.n. Herbergier Bartlehiem"
+        },
+        {
+            "debtorId": "1ba54eaf-b430-4a1c-9e9a-28ce2bcbc215",
+            "number": "105433320",
+            "name": "Herbergier Etten-Leur"
+        },
+        {
+            "debtorId": "5ce5fa90-6fff-4e6b-a799-12d40f3c89e0",
+            "number": "1029757",
+            "name": "Herbergier Hellevoetsluis"
+        }
+    ]
+}
+```
+
+Company
+
+```sql
+{
+    "pagination": {
+        "pageNumber": 1,
+        "pageSize": 20,
+        "firstPage": "https://api.nmbrsapp.com/api/debtors/508987b8-a798-4935-93a3-b795c48d4944/companies?pageNumber=1&pageSize=20",
+        "lastPage": "https://api.nmbrsapp.com/api/debtors/508987b8-a798-4935-93a3-b795c48d4944/companies?pageNumber=1&pageSize=20",
+        "totalPages": 1,
+        "totalRecords": 1,
+        "nextPage": null,
+        "previousPage": null
+    },
+    "data": [
+        {
+            "companyId": "49e1a5cf-54fa-47fd-9510-a6d0c2cc290e",
+            "number": "1028815",
+            "name": "Herbergier Voorthuizen",
+            "debtorId": "508987b8-a798-4935-93a3-b795c48d4944"
+        }
+    ]
+}
+```
+
+Employees
+
+```sql
+{
+    "pagination": {
+        "pageNumber": 1,
+        "pageSize": 20,
+        "firstPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees?pageNumber=1&pageSize=20",
+        "lastPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees?pageNumber=2&pageSize=20",
+        "totalPages": 2,
+        "totalRecords": 37,
+        "nextPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees?pageNumber=2&pageSize=20",
+        "previousPage": null
+    },
+    "data": [
+        {
+            "employeeId": "90b34293-4782-4b7b-adff-01535361c793",
+            "employeeBasicInfo": {
+                "employeeNumber": 20,
+                "firstName": "Marjon",
+                "firstNameInFull": null,
+                "prefix": "van",
+                "initials": "M.J.",
+                "lastName": "Brink",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "980c7b1a-d7d7-402b-b9bb-058fbe52e413",
+            "employeeBasicInfo": {
+                "employeeNumber": 14,
+                "firstName": "Marjo",
+                "firstNameInFull": null,
+                "prefix": "van",
+                "initials": "M.",
+                "lastName": "Essen",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "cc16e43f-43c7-49b2-962b-06eecd84c309",
+            "employeeBasicInfo": {
+                "employeeNumber": 15,
+                "firstName": "Gerrita",
+                "firstNameInFull": null,
+                "prefix": "van de",
+                "initials": "G.",
+                "lastName": "Beek",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "016fe240-4455-4b4c-8142-0fc51c780b90",
+            "employeeBasicInfo": {
+                "employeeNumber": 27,
+                "firstName": "Tenise",
+                "firstNameInFull": "Tenise",
+                "prefix": "van",
+                "initials": "T.",
+                "lastName": "Domselaar",
+                "employeeType": "formerPayroll"
+            }
+        },
+        {
+            "employeeId": "cd511fe7-48f0-4f61-998b-10fb1abbc3d9",
+            "employeeBasicInfo": {
+                "employeeNumber": 33,
+                "firstName": "Dafni",
+                "firstNameInFull": "Dafni",
+                "prefix": null,
+                "initials": "D",
+                "lastName": "Goorhuis",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "75820512-9e01-4487-8398-1d5861b3bd94",
+            "employeeBasicInfo": {
+                "employeeNumber": 31,
+                "firstName": "Jet",
+                "firstNameInFull": "Henriette Adrienne Francisque",
+                "prefix": "de",
+                "initials": "H.A.F.",
+                "lastName": "Bruin",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "e6ff7a12-ce1d-4a2a-b50a-20d4c6e573d2",
+            "employeeBasicInfo": {
+                "employeeNumber": 32,
+                "firstName": "Petra",
+                "firstNameInFull": "Petra Johanna",
+                "prefix": null,
+                "initials": "P.J.",
+                "lastName": "Mulder",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "ba9c33cb-3e4f-4ef2-92b3-2a64932cb4eb",
+            "employeeBasicInfo": {
+                "employeeNumber": 28,
+                "firstName": "Judi",
+                "firstNameInFull": "Judi Jacqueline Theresa",
+                "prefix": "van",
+                "initials": "J.J.T.",
+                "lastName": "Blankers",
+                "employeeType": "formerPayroll"
+            }
+        },
+        {
+            "employeeId": "4fc1c10d-e611-42a4-963d-2ec5d40451a2",
+            "employeeBasicInfo": {
+                "employeeNumber": 1,
+                "firstName": "Hendrika",
+                "firstNameInFull": "Hendrika",
+                "prefix": null,
+                "initials": "H.",
+                "lastName": "Hendriksen",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "48f153b2-bb5d-43e5-8dda-33e71caef11a",
+            "employeeBasicInfo": {
+                "employeeNumber": 36,
+                "firstName": "Fenny",
+                "firstNameInFull": "Fietje",
+                "prefix": null,
+                "initials": "F",
+                "lastName": "de Jong",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "f5c698ef-ca1c-4a2b-a801-41748070b3b9",
+            "employeeBasicInfo": {
+                "employeeNumber": 37,
+                "firstName": "Jolanda",
+                "firstNameInFull": "Jolanda",
+                "prefix": null,
+                "initials": null,
+                "lastName": "Bax",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "104185a5-aa56-4a8e-80a9-41ca1ca75cbc",
+            "employeeBasicInfo": {
+                "employeeNumber": 30,
+                "firstName": "Anne",
+                "firstNameInFull": "Annemarie",
+                "prefix": "van",
+                "initials": "A.",
+                "lastName": "Walderveen",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "2782cdb7-bdc0-455f-a107-42ce68bf1940",
+            "employeeBasicInfo": {
+                "employeeNumber": 4,
+                "firstName": "Jannie",
+                "firstNameInFull": null,
+                "prefix": null,
+                "initials": "J.",
+                "lastName": "Dijkstra",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "a3e92176-969d-4833-8fe8-43dda62ff58f",
+            "employeeBasicInfo": {
+                "employeeNumber": 29,
+                "firstName": "Heidi",
+                "firstNameInFull": "Hendrika Janetta",
+                "prefix": "van",
+                "initials": "H. J.",
+                "lastName": "Soeren",
+                "employeeType": "formerPayroll"
+            }
+        },
+        {
+            "employeeId": "a815564f-d0b5-4c2e-ba9b-46e498f03751",
+            "employeeBasicInfo": {
+                "employeeNumber": 23,
+                "firstName": "Marga",
+                "firstNameInFull": "Gretha Hendrika Maria",
+                "prefix": "van",
+                "initials": "G.H.M",
+                "lastName": "Amerongen",
+                "employeeType": "formerPayroll"
+            }
+        },
+        {
+            "employeeId": "441deb28-d48a-411d-a702-56130e290195",
+            "employeeBasicInfo": {
+                "employeeNumber": 11,
+                "firstName": "Ria",
+                "firstNameInFull": null,
+                "prefix": "van de",
+                "initials": null,
+                "lastName": "Beek",
+                "employeeType": "formerPayroll"
+            }
+        },
+        {
+            "employeeId": "a371719c-eed0-4091-88d9-570da23ef0c0",
+            "employeeBasicInfo": {
+                "employeeNumber": 3,
+                "firstName": "Nanda",
+                "firstNameInFull": null,
+                "prefix": null,
+                "initials": "W.",
+                "lastName": "Mulder",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "65cc558e-e831-4e1b-89da-5e8aa684153b",
+            "employeeBasicInfo": {
+                "employeeNumber": 7,
+                "firstName": "Ans",
+                "firstNameInFull": null,
+                "prefix": null,
+                "initials": "A.",
+                "lastName": "Kooloos",
+                "employeeType": "formerPayroll"
+            }
+        },
+        {
+            "employeeId": "276acb52-f80e-4504-a7de-64a81f9012ce",
+            "employeeBasicInfo": {
+                "employeeNumber": 26,
+                "firstName": "Fleur",
+                "firstNameInFull": null,
+                "prefix": null,
+                "initials": "F.",
+                "lastName": "Geurtsen",
+                "employeeType": "payroll"
+            }
+        },
+        {
+            "employeeId": "6d89e5e1-4d96-463f-9d30-67a42ea22a2d",
+            "employeeBasicInfo": {
+                "employeeNumber": 13,
+                "firstName": "Lisa",
+                "firstNameInFull": null,
+                "prefix": null,
+                "initials": "L.",
+                "lastName": "Versteeg",
+                "employeeType": "payroll"
+            }
+        }
+    ]
+}
+```
+
+Schedules
+
+```sql
+{
+    "pagination": {
+        "pageNumber": 1,
+        "pageSize": 20,
+        "firstPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees/schedules?pageNumber=1&pageSize=20",
+        "lastPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees/schedules?pageNumber=2&pageSize=20",
+        "totalPages": 2,
+        "totalRecords": 37,
+        "nextPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees/schedules?pageNumber=2&pageSize=20",
+        "previousPage": null
+    },
+    "data": [
+        {
+            "employeeId": "4fc1c10d-e611-42a4-963d-2ec5d40451a2",
+            "schedules": [
+                {
+                    "scheduleId": "446c5614-e70b-462c-aefd-24767a780eaf",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-04-07T14:23:29Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "c486322d-e36a-42db-b09b-9bb8e4c31ec6",
+            "schedules": [
+                {
+                    "scheduleId": "75fba93a-cad0-458f-a173-dfdd724cc337",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T12:00:54Z"
+                },
+                {
+                    "scheduleId": "0cea377e-a1d5-4fbd-b35d-ee923b26ac96",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 166.94,
+                    "hoursPerWeek": 60.1,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 80.2,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-05-08T10:11:21Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "a371719c-eed0-4091-88d9-570da23ef0c0",
+            "schedules": [
+                {
+                    "scheduleId": "819a0855-1350-44df-bd1f-5e063f02cab9",
+                    "startDate": "2025-01-06T00:00:00Z",
+                    "parttimePercentage": 33.329998,
+                    "hoursPerWeek": 12.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 4.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 4.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2025-01-13T13:23:24Z"
+                },
+                {
+                    "scheduleId": "aa1b4201-2fc7-4053-adbb-558367bccacd",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 44.440002,
+                    "hoursPerWeek": 16.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-05-08T10:11:48Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "2782cdb7-bdc0-455f-a107-42ce68bf1940",
+            "schedules": [
+                {
+                    "scheduleId": "7998fd54-e437-4ef9-b548-03226bb1a06e",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 55.559998,
+                    "hoursPerWeek": 20.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-05-08T10:12:19Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "e951847c-9f2d-4bcf-b74f-c79c462bb630",
+            "schedules": [
+                {
+                    "scheduleId": "d6654155-d85a-45f4-a8c0-b73cf57fe3f7",
+                    "startDate": "2024-10-01T00:00:00Z",
+                    "parttimePercentage": 41.670002,
+                    "hoursPerWeek": 15.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 7.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 7.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-10-16T08:10:54Z"
+                },
+                {
+                    "scheduleId": "5ffe1dc4-b612-41bf-a254-3c218b40f18d",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 44.440002,
+                    "hoursPerWeek": 16.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-06-01T12:00:34Z"
+                },
+                {
+                    "scheduleId": "c1991608-b8b1-422d-a814-072e2c552a76",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 144.44,
+                    "hoursPerWeek": 52.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 80.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-05-08T10:13:27Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "3327cdc9-7eaa-4e49-9840-ac1e561d8378",
+            "schedules": [
+                {
+                    "scheduleId": "c744aaa6-0fce-4d19-85c5-e2e9e9349d99",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T10:54:14Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "65cc558e-e831-4e1b-89da-5e8aa684153b",
+            "schedules": [
+                {
+                    "scheduleId": "829c1949-738b-4c02-b3eb-9652d2d286d9",
+                    "startDate": "2023-07-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T10:55:04Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "031471b5-2d6e-4ec4-9713-95b2ff94cdef",
+            "schedules": [
+                {
+                    "scheduleId": "95e3a760-1b77-42d2-b171-788716a01f71",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 4.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T10:55:31Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "b3302fa2-77ce-432e-b50d-a69716cf8046",
+            "schedules": [
+                {
+                    "scheduleId": "7133e28a-9859-4c38-9517-27eb1eb21b54",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 44.440002,
+                    "hoursPerWeek": 16.0,
+                    "daysPerWeek": 2.5,
+                    "week1": {
+                        "hoursMonday": 6.0,
+                        "hoursTuesday": 6.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 6.0,
+                        "hoursTuesday": 6.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-06-01T11:46:49Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "42f76e5d-be0f-4b11-bc40-8068cc904658",
+            "schedules": [
+                {
+                    "scheduleId": "1cc635ae-abae-4b0d-a4c8-f8aed687a768",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 4.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 4.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:50:46Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "441deb28-d48a-411d-a702-56130e290195",
+            "schedules": [
+                {
+                    "scheduleId": "8389b670-bf63-4f03-a15b-4c366a6442df",
+                    "startDate": "2023-07-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:51:08Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "4ca73120-901c-40f8-88d2-a3e4a6923dcc",
+            "schedules": [
+                {
+                    "scheduleId": "0334581d-39ed-4d5e-a5cc-c1eeda46bae3",
+                    "startDate": "2024-01-01T00:00:00Z",
+                    "parttimePercentage": 58.329998,
+                    "hoursPerWeek": 21.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 5.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 5.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2024-01-25T18:53:49Z"
+                },
+                {
+                    "scheduleId": "f3664f7c-8f72-48e2-bf45-79d5c905d344",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 55.559998,
+                    "hoursPerWeek": 20.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 4.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 4.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:51:38Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "6d89e5e1-4d96-463f-9d30-67a42ea22a2d",
+            "schedules": [
+                {
+                    "scheduleId": "48be3c7c-43f0-4043-b762-b0145114a5a4",
+                    "startDate": "2024-08-01T00:00:00Z",
+                    "parttimePercentage": 88.89,
+                    "hoursPerWeek": 32.0,
+                    "daysPerWeek": 4.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2024-08-20T07:49:54Z"
+                },
+                {
+                    "scheduleId": "9b874411-f554-47e1-b407-81e435a3ba9c",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 4.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:52:00Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "980c7b1a-d7d7-402b-b9bb-058fbe52e413",
+            "schedules": [
+                {
+                    "scheduleId": "734228a6-40e5-4de3-a1d7-2467d189eebf",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 4.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:52:23Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "cc16e43f-43c7-49b2-962b-06eecd84c309",
+            "schedules": [
+                {
+                    "scheduleId": "fd812edc-c6e3-426b-9da1-40c1bb332ad8",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 4.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:52:53Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "c918fa16-e3da-4b1c-bc78-d42ca0694521",
+            "schedules": [
+                {
+                    "scheduleId": "01888ff3-f67a-49f4-96ff-57426baa4420",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:53:26Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "2528c72b-2715-4cdb-96a1-8e8e4bdf3110",
+            "schedules": [
+                {
+                    "scheduleId": "b1b4c81f-c2b0-46db-b544-39881154595b",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 4.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:53:42Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "17570b7d-ce40-48f7-90b9-afedac7f34d0",
+            "schedules": [
+                {
+                    "scheduleId": "7f062b1c-e9b2-43d4-a878-e88d1d158272",
+                    "startDate": "2023-06-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2023-06-01T11:53:58Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "a2544f8f-30d6-4876-9d63-c996cf9b267f",
+            "schedules": [
+                {
+                    "scheduleId": "e48cfd6a-794f-4c43-85c3-98aa6688d5ea",
+                    "startDate": "2023-11-01T00:00:00Z",
+                    "parttimePercentage": 58.329998,
+                    "hoursPerWeek": 21.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 7.0,
+                        "hoursSaturday": 7.0,
+                        "hoursSunday": 7.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 7.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 7.0,
+                        "hoursFriday": 7.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-11-21T12:46:18Z"
+                },
+                {
+                    "scheduleId": "20262a8b-1a08-4a7f-87ef-c15fc21cf2e5",
+                    "startDate": "2023-07-01T00:00:00Z",
+                    "parttimePercentage": 29.17,
+                    "hoursPerWeek": 10.5,
+                    "daysPerWeek": 1.5,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 7.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 7.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 7.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-07-24T13:42:47Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "90b34293-4782-4b7b-adff-01535361c793",
+            "schedules": [
+                {
+                    "scheduleId": "d95bf3c3-30e4-4537-a410-aa305e1b3047",
+                    "startDate": "2023-09-01T00:00:00Z",
+                    "parttimePercentage": 44.440002,
+                    "hoursPerWeek": 16.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-08-07T10:55:45Z"
+                }
+            ]
+        }
+    ]
+}
+```
+
+```sql
+{
+    "pagination": {
+        "pageNumber": 2,
+        "pageSize": 20,
+        "firstPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees/schedules?pageNumber=1&pageSize=20",
+        "lastPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees/schedules?pageNumber=2&pageSize=20",
+        "totalPages": 2,
+        "totalRecords": 37,
+        "nextPage": null,
+        "previousPage": "https://api.nmbrsapp.com/api/companies/49e1a5cf-54fa-47fd-9510-a6d0c2cc290e/employees/schedules?pageNumber=1&pageSize=20"
+    },
+    "data": [
+        {
+            "employeeId": "edaf23b9-c97f-49e3-82b0-e23e0ce07fcc",
+            "schedules": [
+                {
+                    "scheduleId": "3e441883-a1b6-4436-9eba-5a4faa67799e",
+                    "startDate": "2023-09-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 3.5,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-08-07T10:56:02Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "b647f774-454c-4b9e-8bad-e3066c3f955d",
+            "schedules": [
+                {
+                    "scheduleId": "958fff79-8c4a-48d3-a0ba-1238f4fbfcfc",
+                    "startDate": "2024-10-01T00:00:00Z",
+                    "parttimePercentage": 22.220001,
+                    "hoursPerWeek": 8.0,
+                    "daysPerWeek": 1.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2024-09-19T11:56:58Z"
+                },
+                {
+                    "scheduleId": "6c732ff2-bb0a-448d-b948-8af8b3c42faf",
+                    "startDate": "2023-10-01T00:00:00Z",
+                    "parttimePercentage": 44.440002,
+                    "hoursPerWeek": 16.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-10-02T16:10:34Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "a815564f-d0b5-4c2e-ba9b-46e498f03751",
+            "schedules": [
+                {
+                    "scheduleId": "1806e48e-4262-4317-b753-6f746c24ae85",
+                    "startDate": "2023-12-01T00:00:00Z",
+                    "parttimePercentage": 77.78,
+                    "hoursPerWeek": 28.0,
+                    "daysPerWeek": 3.5,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-12-14T11:54:27Z"
+                },
+                {
+                    "scheduleId": "db17d715-740c-49fb-9c95-79487072306d",
+                    "startDate": "2023-12-01T00:00:00Z",
+                    "parttimePercentage": 177.78,
+                    "hoursPerWeek": 64.0,
+                    "daysPerWeek": 3.5,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 80.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-12-14T11:36:31Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "c06fd2a1-c1c7-4389-99a8-fc4f2304ab16",
+            "schedules": [
+                {
+                    "scheduleId": "973bb7ea-ed35-4ce4-8f8f-06bd4a341e91",
+                    "startDate": "2024-01-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-12-14T11:37:02Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "2534ef8d-ea5f-4e4f-8f93-9a48e42aefb0",
+            "schedules": [
+                {
+                    "scheduleId": "8c612d03-d19a-4279-92be-0b1d21abecca",
+                    "startDate": "2024-02-01T00:00:00Z",
+                    "parttimePercentage": 100.0,
+                    "hoursPerWeek": 36.0,
+                    "daysPerWeek": 5.0,
+                    "week1": {
+                        "hoursMonday": 7.2,
+                        "hoursTuesday": 7.2,
+                        "hoursWednesday": 7.2,
+                        "hoursThursday": 7.2,
+                        "hoursFriday": 7.2,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 7.2,
+                        "hoursTuesday": 7.2,
+                        "hoursWednesday": 7.2,
+                        "hoursThursday": 7.2,
+                        "hoursFriday": 7.2,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-04-12T08:33:21Z"
+                },
+                {
+                    "scheduleId": "1960250e-cf99-4245-8bce-628d05a7ac9d",
+                    "startDate": "2024-01-01T00:00:00Z",
+                    "parttimePercentage": 55.559998,
+                    "hoursPerWeek": 20.0,
+                    "daysPerWeek": 5.0,
+                    "week1": {
+                        "hoursMonday": 4.0,
+                        "hoursTuesday": 4.0,
+                        "hoursWednesday": 4.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 4.0,
+                        "hoursTuesday": 4.0,
+                        "hoursWednesday": 4.0,
+                        "hoursThursday": 4.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-04-10T08:54:51Z"
+                },
+                {
+                    "scheduleId": "258a1f07-cad8-4c56-9d4f-79d963434940",
+                    "startDate": "2023-12-01T00:00:00Z",
+                    "parttimePercentage": 100.0,
+                    "hoursPerWeek": 36.0,
+                    "daysPerWeek": 4.5,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-12-14T11:37:31Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "276acb52-f80e-4504-a7de-64a81f9012ce",
+            "schedules": [
+                {
+                    "scheduleId": "b4add460-08d9-4403-988b-b132801f8209",
+                    "startDate": "2023-12-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 8.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2023-12-14T11:38:01Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "016fe240-4455-4b4c-8142-0fc51c780b90",
+            "schedules": [
+                {
+                    "scheduleId": "55334b90-a76e-4579-9c31-9ac07bdf1609",
+                    "startDate": "2024-01-01T00:00:00Z",
+                    "parttimePercentage": 22.220001,
+                    "hoursPerWeek": 8.0,
+                    "daysPerWeek": 1.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2024-01-24T12:49:39Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "ba9c33cb-3e4f-4ef2-92b3-2a64932cb4eb",
+            "schedules": [
+                {
+                    "scheduleId": "a1747176-cead-4e88-b618-8101a457880b",
+                    "startDate": "2024-02-01T00:00:00Z",
+                    "parttimePercentage": 22.220001,
+                    "hoursPerWeek": 8.0,
+                    "daysPerWeek": 1.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2024-02-22T11:52:40Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "a3e92176-969d-4833-8fe8-43dda62ff58f",
+            "schedules": [
+                {
+                    "scheduleId": "95a576cb-165c-479b-b224-cef7870e4ebb",
+                    "startDate": "2024-02-01T00:00:00Z",
+                    "parttimePercentage": 22.220001,
+                    "hoursPerWeek": 8.0,
+                    "daysPerWeek": 1.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-02-22T11:53:10Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "104185a5-aa56-4a8e-80a9-41ca1ca75cbc",
+            "schedules": [
+                {
+                    "scheduleId": "f97b871f-9315-4e71-a7d6-c837f1da90e9",
+                    "startDate": "2024-10-01T00:00:00Z",
+                    "parttimePercentage": 55.559998,
+                    "hoursPerWeek": 20.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 4.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 4.0
+                    },
+                    "createdAt": "2024-10-16T08:10:40Z"
+                },
+                {
+                    "scheduleId": "0e50cbb2-6071-4ea1-bbe0-7772ed9d339d",
+                    "startDate": "2024-03-01T00:00:00Z",
+                    "parttimePercentage": 61.11,
+                    "hoursPerWeek": 22.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 7.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 7.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 7.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 7.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-03-18T14:34:11Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "75820512-9e01-4487-8398-1d5861b3bd94",
+            "schedules": [
+                {
+                    "scheduleId": "6a7e540a-bde0-4ada-8046-7f029ce4e689",
+                    "startDate": "2024-04-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-04-09T14:44:14Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "e6ff7a12-ce1d-4a2a-b50a-20d4c6e573d2",
+            "schedules": [
+                {
+                    "scheduleId": "caae7c39-2b68-4d9a-853e-76f274ac4592",
+                    "startDate": "2024-04-01T00:00:00Z",
+                    "parttimePercentage": 66.67,
+                    "hoursPerWeek": 24.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 8.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 8.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 8.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-04-09T14:44:28Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "cd511fe7-48f0-4f61-998b-10fb1abbc3d9",
+            "schedules": [
+                {
+                    "scheduleId": "79df2d50-4c22-4e8d-9ff9-aec6a9190e06",
+                    "startDate": "2024-06-01T00:00:00Z",
+                    "parttimePercentage": 22.220001,
+                    "hoursPerWeek": 8.0,
+                    "daysPerWeek": 1.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2024-07-17T08:08:30Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "46071edd-f513-4eed-9d9f-d829a4283590",
+            "schedules": [
+                {
+                    "scheduleId": "01e770d0-623b-4450-91e7-6915252431c0",
+                    "startDate": "2024-09-01T00:00:00Z",
+                    "parttimePercentage": 100.0,
+                    "hoursPerWeek": 0.0,
+                    "daysPerWeek": 0.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 0.0
+                    },
+                    "createdAt": "2024-09-19T11:57:27Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "db8043d7-0f23-467d-a3f6-f3afab933bca",
+            "schedules": [
+                {
+                    "scheduleId": "2fad9cb8-272b-455c-85e8-21294e9a0ae6",
+                    "startDate": "2024-10-01T00:00:00Z",
+                    "parttimePercentage": 38.89,
+                    "hoursPerWeek": 14.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 7.0,
+                        "hoursSaturday": 7.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 7.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 7.0
+                    },
+                    "createdAt": "2024-10-16T08:10:22Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "48f153b2-bb5d-43e5-8dda-33e71caef11a",
+            "schedules": [
+                {
+                    "scheduleId": "a138c09c-0455-4224-8d80-5260f4067f65",
+                    "startDate": "2024-11-01T00:00:00Z",
+                    "parttimePercentage": 38.89,
+                    "hoursPerWeek": 14.0,
+                    "daysPerWeek": 2.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 7.0,
+                        "hoursSaturday": 7.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 7.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 0.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 0.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 7.0
+                    },
+                    "createdAt": "2024-11-18T13:54:54Z"
+                }
+            ]
+        },
+        {
+            "employeeId": "f5c698ef-ca1c-4a2b-a801-41748070b3b9",
+            "schedules": [
+                {
+                    "scheduleId": "5404e21b-fb36-4643-8a65-28a5100afa03",
+                    "startDate": "2024-11-01T00:00:00Z",
+                    "parttimePercentage": 55.559998,
+                    "hoursPerWeek": 20.0,
+                    "daysPerWeek": 3.0,
+                    "week1": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 8.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 4.0,
+                        "hoursSaturday": 8.0,
+                        "hoursSunday": 0.0
+                    },
+                    "week2": {
+                        "hoursMonday": 0.0,
+                        "hoursTuesday": 0.0,
+                        "hoursWednesday": 4.0,
+                        "hoursThursday": 0.0,
+                        "hoursFriday": 8.0,
+                        "hoursSaturday": 0.0,
+                        "hoursSunday": 8.0
+                    },
+                    "createdAt": "2024-11-18T14:03:31Z"
+                }
+            ]
+        }
+    ]
+}
+```
