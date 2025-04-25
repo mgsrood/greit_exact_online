@@ -42,7 +42,7 @@ try:
             exact(connection_string, config_manager)
         
         if applicatie == "AFAS":
-            """afas(connection_string, config_manager)"""
+            afas(connection_string, config_manager)
     
     # Einde script
     end_log(start_time)

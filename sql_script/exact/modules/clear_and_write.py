@@ -5,8 +5,8 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(o
 sys.path.append(project_root)
 
 # Importeer de benodigde modules
-from sql_script.utils.database_connection import get_azure_sql_access_token
-from sql_script.utils.env_config import EnvConfig
+from greit_exact_online.sql_script.utils.database_connection import get_azure_sql_access_token
+from greit_exact_online.sql_script.utils.env_config import EnvConfig
 from sqlalchemy import create_engine, event, text
 from dataclasses import dataclass
 from datetime import datetime
