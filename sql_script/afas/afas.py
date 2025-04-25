@@ -6,7 +6,7 @@ sys.path.append(project_root)
 
 from afas.modules.clear_and_write import apply_table_clearing, apply_table_writing
 from afas.modules.type_mapping import apply_type_conversion, add_environment_id
-from intern.sql_script.utils.env_config import EnvConfig
+from sql_script.utils.env_config import EnvConfig
 from afas.modules.get_request import execute_get_request
 from afas.modules.get_request import get_connectors
 from datetime import datetime

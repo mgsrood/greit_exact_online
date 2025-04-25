@@ -10,7 +10,7 @@ from exact.modules.column_management import apply_column_mapping
 from exact.modules.type_mapping import apply_type_conversion
 from exact.modules.appending_functions import DataTransformer
 from exact.modules.synchronisation import SyncFormatManager
-from intern.sql_script.utils.env_config import EnvConfig
+from sql_script.utils.env_config import EnvConfig
 from datetime import datetime
 import pandas as pd
 import logging
