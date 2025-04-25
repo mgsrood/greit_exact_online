@@ -19,6 +19,15 @@ class DatabaseLogHandler(logging.Handler):
         self.tenant_id = tenant_id
         self.client_id = client_id
         self.client_secret = client_secret
+        self.administratiecode = None
+        self.tabel = None
+
+    def set_context(self, administratiecode=None, tabel=None):
+        """
+        Stel de context in voor de volgende log entry.
+        """
+        self.administratiecode = administratiecode
+        self.tabel = tabel
 
     def emit(self, record):
         try:
@@ -40,7 +49,7 @@ class DatabaseLogHandler(logging.Handler):
                            (Klantnaam, Actie, Datumtijd, Administratiecode, Tabel, Script, ScriptID) 
                            VALUES (?, ?, ?, ?, ?, ?, ?)""",
                         (self.customer, log_message, created_at, 
-                         None, None, self.script, self.script_id)
+                         self.administratiecode, self.tabel, self.script, self.script_id)
                     )
                     conn.commit()
         except Exception as e:
@@ -106,3 +115,17 @@ def end_log(start_time):
     total_time = timedelta(seconds=(end_time - start_time))
     total_time_str = str(total_time).split('.')[0]
     logging.info(f"Script volledig afgerond in {total_time_str}")
+
+def set_logging_context(administratiecode=None, tabel=None):
+    """
+    Stel de context in voor de volgende log entry.
+    
+    Args:
+        administratiecode: De administratiecode voor de log entry
+        tabel: De tabelnaam voor de log entry
+    """
+    # Zoek de DatabaseLogHandler in de handlers
+    for handler in logging.getLogger().handlers:
+        if isinstance(handler, DatabaseLogHandler):
+            handler.set_context(administratiecode=administratiecode, tabel=tabel)
+            break

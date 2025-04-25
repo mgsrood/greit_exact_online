@@ -201,6 +201,17 @@ class ConfigManager:
         if self.logger:
             self.logger.customer = nieuwe_klant
             
+    def set_logging_context(self, administratiecode=None, tabel=None):
+        """
+        Stel de context in voor de volgende log entry.
+        
+        Args:
+            administratiecode: De administratiecode voor de log entry
+            tabel: De tabelnaam voor de log entry
+        """
+        if self.logger:
+            self.logger.set_context(administratiecode=administratiecode, tabel=tabel)
+            
     def fetch_environment_variables(self, cursor):
         """Haal omgevings configuratie gegevens op uit de database"""
         cursor.execute('SELECT * FROM Omgeving')

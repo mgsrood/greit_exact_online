@@ -56,11 +56,17 @@ def afas(connection_string, config_manager):
             logging.info(f"Overslaan van GET Requests voor omgeving: {klant}")
             continue
         
+        # Stel de logging context in voor deze omgeving
+        config_manager.set_logging_context(administratiecode=omgeving_id)
+        
         for table, status in table_config_dict.items():
             if status == 0:
                 logging.info(f"Overslaan van GET Requests voor endpoint: {table} | {klant}")
                 continue
         
+            # Stel de logging context in voor deze tabel, behoud de administratiecode
+            config_manager.set_logging_context(administratiecode=omgeving_id, tabel=table)
+            
             # Connector ophalen
             connectors = get_connectors(laatste_sync)
             if table in connectors:
@@ -110,5 +116,6 @@ def afas(connection_string, config_manager):
     if errors_occurred is True:
         config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
         config_manager.update_reporting_year(connection_string)
+        logging.info(f"Script succesvol afgerond")
     else:
         logging.error(f"Fout bij het verwerken van de divisies voor klant {env_config_dict['klant_naam']}, laatste sync en rapportage jaar niet bijgewerkt")

@@ -11,6 +11,7 @@ from exact.modules.type_mapping import apply_type_conversion
 from exact.modules.appending_functions import DataTransformer
 from exact.modules.synchronisation import SyncFormatManager
 from greit_exact_online.sql_script.utils.env_config import EnvConfig
+from greit_exact_online.sql_script.utils.log import set_logging_context
 from datetime import datetime
 import pandas as pd
 import logging
@@ -106,8 +107,8 @@ def exact(connection_string, config_manager):
     for division_name, division_code in division_codes.items():
         logging.info(f"Verwerken divisie: {division_name} ({division_code})")
         
-        # Update de klantnaam voor logging
-        config_manager.update_klant(division_name)
+        # Stel de logging context in voor deze divisie
+        config_manager.set_logging_context(administratiecode=division_code)
         
         # Basis URL voor Exact Online API met Divisie code extensie
         url = f"https://start.exactonline.nl/api/v1/{division_code}/"
@@ -133,6 +134,9 @@ def exact(connection_string, config_manager):
                         continue
                     
                     else:
+                        # Stel de logging context in voor deze tabel, behoud de administratiecode
+                        config_manager.set_logging_context(administratiecode=division_code, tabel=tabel)
+                        
                         # Uitvoeren GET Request
                         df, error = execute_get_request(config_manager, division_code, url, endpoint, connection_string, tabel, division_name)
                         
@@ -157,7 +161,7 @@ def exact(connection_string, config_manager):
                         df_converted = apply_type_conversion(df_transformed, tabel)
 
                         # Rijen verwijderen
-                        apply_table_clearing(connection_string, tabel, division_code, reporting_year)
+                        apply_table_clearing(connection_string, table, division_code, reporting_year, laatste_sync)
                         
                         # Rijen toevoegen
                         succes = apply_table_writing(connection_string, df_converted, tabel, laatste_sync)
@@ -176,5 +180,6 @@ def exact(connection_string, config_manager):
     if errors_occurred is True:
         config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
         config_manager.update_reporting_year(connection_string)
+        logging.info(f"Script succesvol afgerond")
     else:
         logging.error(f"Fout bij het verwerken van de divisies voor klant {env_config_dict['klant_naam']}, laatste sync en rapportage jaar niet bijgewerkt")
