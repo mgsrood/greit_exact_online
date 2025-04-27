@@ -108,7 +108,7 @@ def exact(connection_string, config_manager):
         logging.info(f"Verwerken divisie: {division_name} ({division_code})")
         
         # Stel de logging context in voor deze divisie
-        config_manager.set_logging_context(administratiecode=division_code)
+        config_manager.set_logging_context(administratiecode=division_code, tabel=None)
         
         # Basis URL voor Exact Online API met Divisie code extensie
         url = f"https://start.exactonline.nl/api/v1/{division_code}/"
@@ -173,13 +173,11 @@ def exact(connection_string, config_manager):
         # Logging van afronding 
         logging.info(f"GET Requests succesvol afgerond voor divisie: {division_name} ({division_code})")
     
-    # Logging van afronding 
-    logging.info(f"Alle divisies succesvol verwerkt voor klant {env_config_dict['klant_naam']}")
-    
     # Laatste sync en rapportage jaar bijwerken
-    if errors_occurred is True:
+    if errors_occurred is False:
         config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
         config_manager.update_reporting_year(connection_string)
         logging.info(f"Script succesvol afgerond")
+        logging.info(f"Alle divisies succesvol verwerkt voor klant {env_config_dict['klant_naam']}")
     else:
         logging.error(f"Fout bij het verwerken van de divisies voor klant {env_config_dict['klant_naam']}, laatste sync en rapportage jaar niet bijgewerkt")

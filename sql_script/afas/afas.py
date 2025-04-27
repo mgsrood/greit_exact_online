@@ -8,7 +8,7 @@ from afas.modules.clear_and_write import apply_table_clearing, apply_table_writi
 from afas.modules.type_mapping import apply_type_conversion, add_environment_id
 from greit_exact_online.sql_script.utils.env_config import EnvConfig
 from afas.modules.get_request import execute_get_request
-from afas.modules.get_request import get_connectors
+from afas.modules.get_request import SyncFormatManager
 from datetime import datetime
 import pandas as pd
 import logging
@@ -57,7 +57,7 @@ def afas(connection_string, config_manager):
             continue
         
         # Stel de logging context in voor deze omgeving
-        config_manager.set_logging_context(administratiecode=omgeving_id)
+        config_manager.set_logging_context(administratiecode=omgeving_id, tabel=None)
         
         for table, status in table_config_dict.items():
             if status == 0:
@@ -68,7 +68,9 @@ def afas(connection_string, config_manager):
             config_manager.set_logging_context(administratiecode=omgeving_id, tabel=table)
             
             # Connector ophalen
-            connectors = get_connectors(laatste_sync)
+            sync_manager = SyncFormatManager(config_manager)
+            connectors = sync_manager.return_connectors(laatste_sync)
+            
             if table in connectors:
                 connector = connectors[table]
             
@@ -113,9 +115,10 @@ def afas(connection_string, config_manager):
     logging.info(f"Alle divisies succesvol verwerkt voor klant {env_config_dict['klant_naam']}")
     
     # Laatste sync en rapportage jaar bijwerken
-    if errors_occurred is True:
+    if errors_occurred is False:
         config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
         config_manager.update_reporting_year(connection_string)
         logging.info(f"Script succesvol afgerond")
+        logging.info(f"Alle divisies succesvol verwerkt voor klant {env_config_dict['klant_naam']}")
     else:
         logging.error(f"Fout bij het verwerken van de divisies voor klant {env_config_dict['klant_naam']}, laatste sync en rapportage jaar niet bijgewerkt")

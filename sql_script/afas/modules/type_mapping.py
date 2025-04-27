@@ -131,8 +131,7 @@ class TypeMappingConfig:
                 "Eind_Datum": "date",
                 "Voortgang_Percentage": "decimal",
                 "Decharge_Verzonden": "bit",
-                "Afgemeld": "bit",
-                "Gewijzigd_Op": "datetime",
+                "Afgemeld": "bit"
             },
             "Relaties": {
                 "OmgevingID": "int",

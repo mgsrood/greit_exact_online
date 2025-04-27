@@ -163,8 +163,8 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None, l
                         verschil_in_dagen = (huidige_datum - laatste_sync_datum).days
                         verschil_in_jaren = verschil_in_dagen / 365.0
                         
-                        if verschil_in_jaren > 1.2:
-                            logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar volledige truncate voor {table}")
+                        if verschil_in_jaren > 2:
+                            logging.info(f"Laatste sync is meer dan twee jaar geleden, overschakelen naar volledige truncate voor {table}")
                             if division_code is not None:
                                 result = connection.execute(
                                     text(f"DELETE FROM {table} WHERE {config.administration_column} = :division_code"),
@@ -328,8 +328,8 @@ def write_data(engine, df, table, config, laatste_sync=None):
                     laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
                     verschil_in_jaren = (huidige_datum - laatste_sync_datum).days / 365
 
-                    if verschil_in_jaren > 1.2:
-                        logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar simpele insert voor tabel: {table}")
+                    if verschil_in_jaren > 2:
+                        logging.info(f"Laatste sync is meer dan twee jaar geleden, overschakelen naar simpele insert voor tabel: {table}")
                         df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
                     else:
                         temp_table_name = f"temp_table_{int(time.time())}"

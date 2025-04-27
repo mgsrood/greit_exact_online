@@ -8,7 +8,7 @@ class SyncFormatManager:
         self.script_name = config_manager.script
 
     def _create_reset_endpoints(self, laatste_sync, reporting_year):
-        """Endpoints voor een reset sync (laatste sync > 1.2 jaar geleden)"""
+        """Endpoints voor een reset sync (laatste sync > 2 jaar geleden)"""
         return {
             "Offertes": f"bulk/CRM/Quotations?$select=QuotationID,QuotationNumber,VersionNumber,SalesPersonFullName,Currency,Description,StatusDescription,OrderAccount,Opportunity,QuotationDate,ClosingDate,CloseDate,DeliveryDate,Remarks,YourRef,AmountDC,QuotationLines/ID,QuotationLines/AmountDC,QuotationLines/CostCenterDescription,QuotationLines/CostUnitDescription,QuotationLines/Description,QuotationLines/Discount,QuotationLines/Item,QuotationLines/LineNumber,QuotationLines/Quantity,QuotationLines/UnitDescription,QuotationLines/UnitPrice,QuotationLines/VATAmountFC,QuotationLines/VATPercentage&$expand=QuotationLines",
             "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
@@ -31,7 +31,7 @@ class SyncFormatManager:
         }
 
     def _create_regular_endpoints(self, laatste_sync, reporting_year):
-        """Endpoints voor een reguliere sync (laatste sync < 1.2 jaar geleden)"""
+        """Endpoints voor een reguliere sync (laatste sync < 2 jaar geleden)"""
         return {
             "Offertes": f"crm/Quotations?$filter=Modified ge datetime'{laatste_sync}'&$select=QuotationID,QuotationNumber,VersionNumber,SalesPersonFullName,Currency,Description,StatusDescription,OrderAccount,Opportunity,QuotationDate,ClosingDate,CloseDate,DeliveryDate,Remarks,YourRef,AmountDC,QuotationLines/ID,QuotationLines/AmountDC,QuotationLines/CostCenterDescription,QuotationLines/CostUnitDescription,QuotationLines/Description,QuotationLines/Discount,QuotationLines/Item,QuotationLines/LineNumber,QuotationLines/Quantity,QuotationLines/UnitDescription,QuotationLines/UnitPrice,QuotationLines/VATAmountFC,QuotationLines/VATPercentage&$expand=QuotationLines",
             "ArtikelenExtraVelden": f"read/logistics/ItemExtraField?$filter=Modified ge datetime'{laatste_sync}'",
@@ -79,7 +79,7 @@ class SyncFormatManager:
         laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
         verschil_in_jaren = (huidige_datum - laatste_sync_datum).days / 365
 
-        is_reset_sync = verschil_in_jaren > 1.2
+        is_reset_sync = verschil_in_jaren > 2
         logging.info(f"{'Reset' if is_reset_sync else 'Reguliere'} sync wordt uitgevoerd")
         
         # Gebruik reset of reguliere endpoints afhankelijk van is_reset_sync
