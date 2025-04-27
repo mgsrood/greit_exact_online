@@ -14,7 +14,8 @@ config_manager = ConfigManager(
     auth_method=db_config["auth_method"],
     tenant_id=db_config.get("tenant_id"),
     client_id=db_config.get("client_id"),
-    client_secret=db_config.get("client_secret")
+    client_secret=db_config.get("client_secret"),
+    script_name=db_config.get("script_name")
 )
 
 # Logger setup - haalt automatisch de volgende script ID op
@@ -22,6 +23,8 @@ script_id = config_manager.setup_logger(
     klant=db_config["klant_naam"]
 )
 start_time = start_log()
+
+print(db_config["script_name"])
 
 # Starten script
 try:
@@ -38,7 +41,7 @@ try:
         config_manager.update_klant(klant)
             
         # Alleen applicatie Exact verwerken
-        if applicatie == "Exact" and klant != "PreventGroup":
+        if applicatie == "Exact" and klant != "PreventGroup" and klant != "Adminnit":
             exact(connection_string, config_manager)
         
         if applicatie == "AFAS":

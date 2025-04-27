@@ -6,7 +6,7 @@ class SyncFormatManager:
     def __init__(self, config_manager):
         self.config = config_manager
         self.logger = config_manager.logger
-        self.script_name = config_manager.script
+        self.script_name = config_manager.script_name
 
     def _regular_connectors(self,laatste_sync):
         """Retourneert de AFAS connectors met eventuele filters."""

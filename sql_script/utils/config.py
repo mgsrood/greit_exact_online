@@ -7,7 +7,7 @@ import logging
 import os
 
 class ConfigManager:
-    def __init__(self, connection_string, auth_method="SQL", tenant_id=None, client_id=None, client_secret=None, script="Wijzigingen"):
+    def __init__(self, connection_string, auth_method="SQL", tenant_id=None, client_id=None, client_secret=None, script_name="Wijzigingen"):
         self.connection_string = connection_string
         self.auth_method = auth_method
         self.tenant_id = tenant_id
@@ -15,7 +15,7 @@ class ConfigManager:
         self.client_secret = client_secret
         self.logger = None
         self.klant = None
-        self.script = script
+        self.script_name = script_name
         self.script_id = None
 
     def setup_logger(self, klant):
@@ -31,7 +31,7 @@ class ConfigManager:
                     self.logger = setup_logging(
                         conn_str=self.connection_string,
                         klant=klant,
-                        script=self.script,
+                        script=self.script_name,
                         script_id=script_id,
                         auth_method=self.auth_method,
                         tenant_id=self.tenant_id,

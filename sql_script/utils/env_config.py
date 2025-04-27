@@ -112,7 +112,8 @@ class EnvConfig:
         config = {
             "connection_string": connection_string,
             "auth_method": env_vars["DB_AUTH_METHOD"],
-            "klant_naam": env_vars["KLANT_NAAM"]
+            "klant_naam": env_vars["KLANT_NAAM"],
+            "script_name": os.getenv("SCRIPT_NAME")
         }
 
         # Voeg MEI-specifieke parameters toe indien nodig

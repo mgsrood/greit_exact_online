@@ -5,7 +5,7 @@ class SyncFormatManager:
     def __init__(self, config_manager):
         self.config = config_manager
         self.logger = config_manager.logger
-        self.script_name = config_manager.script
+        self.script_name = config_manager.script_name
 
     def _create_reset_endpoints(self, laatste_sync, reporting_year):
         """Endpoints voor een reset sync (laatste sync > 2 jaar geleden)"""

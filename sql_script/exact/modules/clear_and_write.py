@@ -180,40 +180,6 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None, l
                     except (ValueError, TypeError) as e:
                         logging.warning(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
 
-                # Log foreign key constraints
-                if table == "VerkoopOrders":
-                    fk_query = """
-                    SELECT 
-                        OBJECT_NAME(parent_object_id) AS ReferencingTable,
-                        OBJECT_NAME(referenced_object_id) AS ReferencedTable,
-                        name AS ConstraintName
-                    FROM sys.foreign_keys
-                    WHERE referenced_object_id = OBJECT_ID('VerkoopOrders')
-                    """
-                    fk_result = connection.execute(text(fk_query))
-                    fk_constraints = fk_result.fetchall()
-                    
-                    if fk_constraints:
-                        logging.info(f"Foreign key constraints gevonden voor VerkoopOrders:")
-                        for constraint in fk_constraints:
-                            logging.info(f"- {constraint.ReferencingTable} verwijst naar VerkoopOrders via {constraint.ConstraintName}")
-                    
-                    # Controleer of er records zijn die verwijzen naar VerkoopOrders
-                    for constraint in fk_constraints:
-                        check_query = f"""
-                        SELECT COUNT(*) as Count
-                        FROM {constraint.ReferencingTable}
-                        WHERE EXISTS (
-                            SELECT 1 FROM VerkoopOrders
-                            WHERE VerkoopOrders.OR_OrderRegelID = {constraint.ReferencingTable}.FR_VerkooporderRegelID
-                            OR VerkoopOrders.O_OrderID = {constraint.ReferencingTable}.FR_VerkooporderID
-                        )
-                        """
-                        count_result = connection.execute(text(check_query))
-                        count = count_result.scalar()
-                        if count > 0:
-                            logging.warning(f"Waarschuwing: {count} records in {constraint.ReferencingTable} verwijzen naar VerkoopOrders")
-
                 if config.mode == 'truncate':
                     if division_code is not None:
                         # Log het aantal te verwijderen records
