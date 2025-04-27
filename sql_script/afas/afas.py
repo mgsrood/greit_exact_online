@@ -85,7 +85,9 @@ def afas(connection_string, config_manager):
                     # Als de DataFrame leeg is, sla deze omgeving/tabel over
                     logging.warning(f"Overslaan van verdere verwerking voor tabel {table} omdat er geen data is.")
                     continue
-                                
+                pd.set_option('display.max_columns', None)
+                print(f"Table: {table}, df: {df.head()}")
+                
                 # Omgeving ID toevoegen
                 df = add_environment_id(df, omgeving_id)
                 
