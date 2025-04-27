@@ -21,9 +21,6 @@ def afas(connection_string, config_manager):
         connection_string: Connectiestring voor de database
         config_manager: Instantie van ConfigManager
     """
-    # Environment configuratie
-    env_config = EnvConfig()
-    env_config_dict = env_config.get_database_config()
     
     # Klant configuratie
     errors_occurred = False
@@ -114,13 +111,13 @@ def afas(connection_string, config_manager):
         logging.info(f"GET Requests succesvol afgerond voor: {klant} | {omgeving_id}")
     
     # Logging van afronding 
-    logging.info(f"Alle divisies succesvol verwerkt voor klant {env_config_dict['klant_naam']}")
+    logging.info(f"Alle divisies succesvol verwerkt voor klant {klant}")
     
     # Laatste sync en rapportage jaar bijwerken
     if errors_occurred is False:
         config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
         config_manager.update_reporting_year(connection_string)
         logging.info(f"Script succesvol afgerond")
-        logging.info(f"Alle divisies succesvol verwerkt voor klant {env_config_dict['klant_naam']}")
+        logging.info(f"Alle divisies succesvol verwerkt voor klant {klant}")
     else:
-        logging.error(f"Fout bij het verwerken van de divisies voor klant {env_config_dict['klant_naam']}, laatste sync en rapportage jaar niet bijgewerkt")
+        logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
