@@ -177,24 +177,38 @@ def exact(connection_string, config_manager, klant):
                             try:
                                 apply_table_clearing(connection_string, table, division_code, reporting_year, laatste_sync)
                             except Exception as e:
-                                logging.error(f"Fout bij toepassen table clearing: {e}")
+                                logging.error(f"Fout bij toepassen tabel legen: {e}")
                             
                             # Rijen toevoegen
-                            succes = apply_table_writing(connection_string, df_converted, tabel, laatste_sync)
+                            try:
+                                succes = apply_table_writing(connection_string, df_converted, tabel, laatste_sync)
+                            except Exception as e:
+                                logging.error(f"Fout bij toevoegen rijen: {e}")
                             
                             if succes is False:
                                 errors_occurred = True
                                 continue
-            
+                            
+                # Logging van afronding 
+                if errors_occurred is False:
+                    logging.info(f"GET Request succesvolafgerond voor tabel: {tabel} | {division_name} ({division_code})")
+                else:
+                    logging.error(f"Fout bij GET Request voor tabel: {tabel} | {division_name} ({division_code})")
+                
             # Logging van afronding 
-            logging.info(f"GET Requests succesvol afgerond voor divisie: {division_name} ({division_code})")
+            if errors_occurred is False:
+                logging.info(f"GET Requests succesvol afgerond voor divisie: {division_name} ({division_code})")
+            else:
+                logging.error(f"Fout bij GET Requests voor divisie: {division_name} ({division_code})")
             
         # Laatste sync en rapportage jaar bijwerken
         if errors_occurred is False:
             config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
             config_manager.update_reporting_year(connection_string)
-            logging.info(f"Script succesvol afgerond")
-            logging.info(f"Alle divisies succesvol verwerkt voor klant {klant}")
+            logging.info("Laatste sync en reporting year succesvol geüpdate")
+            logging.info(f"Script succesvol afgerond voor klant {klant}")
+        else:
+            logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
 
     except Exception as e:
-        logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
+        logging.error(f"Fout bij het uitvoeren van het script: {e}")

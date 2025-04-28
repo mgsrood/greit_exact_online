@@ -173,63 +173,88 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync):
 def write_data(engine, df, table, config, laatste_sync):
     """Schrijf data naar een tabel met de juiste configuratie."""
     try:
+        logging.info(f"Start schrijven data naar tabel {table} met {len(df)} rijen")
+        
         with engine.connect() as connection:
-            if config.mode == 'truncate':
-                # Voor truncate mode, gebruik simpele insert
-                df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
-                logging.info(f"DataFrame succesvol toegevoegd aan de tabel: {table} ({len(df)} rijen)")
-                return
-                
-            if config.mode == 'none' and laatste_sync:
-                try:
-                    huidige_datum = datetime.now()
-                    laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
-                    verschil_in_dagen = (huidige_datum - laatste_sync_datum).days
-                    verschil_in_jaren = verschil_in_dagen / 365.0
+            temp_table_name = None
+            try:
+                if config.mode == 'truncate':
+                    # Voor truncate mode, gebruik simpele insert
+                    df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
+                    logging.info(f"DataFrame succesvol toegevoegd aan de tabel: {table} ({len(df)} rijen)")
+                    return
                     
-                    if verschil_in_jaren > 1.2:
-                        logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar simpele insert voor {table}")
-                        df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
-                        logging.info(f"DataFrame succesvol toegevoegd aan de tabel: {table} ({len(df)} rijen)")
-                        return
-                except (ValueError, TypeError) as e:
-                    logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard MERGE operatie.")
-            
-            # Alleen voor mode 'none' met geldige laatste_sync, gebruik MERGE
-            temp_table_name = f"temp_table_{int(time.time())}"
-            df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
-            
-            # Bouw MERGE query
-            on_clause = " AND ".join([f"target.{col} = source.{col}" for col in config.unique_columns])
-            if config.administration_column:
-                on_clause += f" AND target.{config.administration_column} = source.{config.administration_column}"
-            
-            update_set = ", ".join([f"target.{col} = source.{col}" 
-                                  for col in df.columns 
-                                  if col not in config.unique_columns and 
-                                  col != config.administration_column])
-            
-            merge_query = f"""
-            MERGE {table} AS target
-            USING (SELECT * FROM {temp_table_name}) AS source
-            ON ({on_clause})
-            WHEN MATCHED THEN
-                UPDATE SET {update_set}
-            WHEN NOT MATCHED THEN
-                INSERT ({', '.join(df.columns)})
-                VALUES ({', '.join([f'source.{col}' for col in df.columns])});
-            """
-            
-            result = connection.execute(text(merge_query))
-            connection.commit()
-            
-            # Verwijder tijdelijke tabel
-            connection.execute(text(f"DROP TABLE {temp_table_name}"))
-            connection.commit()
-            
-            logging.info(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {table} ({len(df)} rijen)")
+                if config.mode == 'none' and laatste_sync:
+                    try:
+                        huidige_datum = datetime.now()
+                        laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
+                        verschil_in_dagen = (huidige_datum - laatste_sync_datum).days
+                        verschil_in_jaren = verschil_in_dagen / 365.0
+                        
+                        if verschil_in_jaren > 1.2:
+                            logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar simpele insert voor {table}")
+                            df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
+                            logging.info(f"DataFrame succesvol toegevoegd aan de tabel: {table} ({len(df)} rijen)")
+                            return
+                    except (ValueError, TypeError) as e:
+                        logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard MERGE operatie.")
+                
+                # Alleen voor mode 'none' met geldige laatste_sync, gebruik MERGE
+                temp_table_name = f"temp_table_{int(time.time())}"
+                logging.info(f"Maak tijdelijke tabel {temp_table_name} aan")
+                df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
+                
+                # Bouw MERGE query
+                on_clause = " AND ".join([f"target.{col} = source.{col}" for col in config.unique_columns])
+                if config.administration_column:
+                    on_clause += f" AND target.{config.administration_column} = source.{config.administration_column}"
+                
+                update_set = ", ".join([f"target.{col} = source.{col}" 
+                                      for col in df.columns 
+                                      if col not in config.unique_columns and 
+                                      col != config.administration_column])
+                
+                merge_query = f"""
+                MERGE {table} AS target
+                USING (SELECT * FROM {temp_table_name}) AS source
+                ON ({on_clause})
+                WHEN MATCHED THEN
+                    UPDATE SET {update_set}
+                WHEN NOT MATCHED THEN
+                    INSERT ({', '.join(df.columns)})
+                    VALUES ({', '.join([f'source.{col}' for col in df.columns])});
+                """
+                
+                logging.info(f"Uitvoeren MERGE query voor tabel {table}")
+                result = connection.execute(text(merge_query))
+                connection.commit()
+                
+                logging.info(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {table} ({len(df)} rijen)")
+                
+            except Exception as e:
+                connection.rollback()
+                logging.error(f"Fout bij het toevoegen naar de database: {str(e)}")
+                # Log de volledige stack trace voor meer details
+                import traceback
+                logging.error(f"Stack trace: {traceback.format_exc()}")
+                raise
+                
+            finally:
+                if temp_table_name:
+                    try:
+                        logging.info(f"Verwijderen tijdelijke tabel {temp_table_name}")
+                        connection.execute(text(f"DROP TABLE {temp_table_name}"))
+                        connection.commit()
+                        logging.info(f"Tijdelijke tabel {temp_table_name} succesvol verwijderd.")
+                    except Exception as e:
+                        logging.error(f"Fout bij het verwijderen van de tijdelijke tabel {temp_table_name}: {str(e)}")
+                        connection.rollback()
+                        
     except Exception as e:
-        logging.error(f"Fout bij het schrijven van data naar {table}: {str(e)}")
+        logging.error(f"Fout bij het maken van database verbinding: {str(e)}")
+        # Log de volledige stack trace voor meer details
+        import traceback
+        logging.error(f"Stack trace: {traceback.format_exc()}")
         raise
 
 def apply_table_clearing(connection_string, table, omgeving_id, laatste_sync, config_manager=None):

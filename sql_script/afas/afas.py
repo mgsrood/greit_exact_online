@@ -108,11 +108,17 @@ def afas(connection_string, config_manager, klant):
                         errors_occurred = True
                         continue
                     
-            # Logging van afronding 
-            logging.info(f"GET Requests succesvol afgerond voor: {klant} | {omgeving_id}")
+                # Logging van afronding 
+                if errors_occurred is False:
+                    logging.info(f"GET Request succesvolafgerond voor tabel: {table} | {klant} ({omgeving_id})")
+                else:
+                    logging.error(f"Fout bij GET Request voor tabel: {table} | {klant} ({omgeving_id})")
         
-        # Logging van afronding 
-        logging.info(f"Alle divisies succesvol verwerkt voor klant {klant}")
+            # Logging van afronding 
+            if errors_occurred is False:
+                logging.info(f"GET Requests succesvol afgerond voor divisie: {klant} ({omgeving_id})")
+            else:
+                logging.error(f"Fout bij GET Requests voor divisie: {klant} ({omgeving_id})")
         
         # Laatste sync en rapportage jaar bijwerken
         if errors_occurred is False:
@@ -120,6 +126,8 @@ def afas(connection_string, config_manager, klant):
             config_manager.update_reporting_year(connection_string)
             logging.info(f"Script succesvol afgerond")
             logging.info(f"Alle divisies succesvol verwerkt voor klant {klant}")
-            
+        else:
+            logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
+
     except Exception as e:
-        logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
+        logging.error(f"Fout bij het uitvoeren van het script: {e}")
