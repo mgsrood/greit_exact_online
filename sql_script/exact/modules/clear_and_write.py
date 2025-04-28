@@ -281,6 +281,8 @@ def apply_table_clearing(connection_string, table, division_code=None, reporting
 def write_data(engine, df, table, config, laatste_sync=None):
     """Schrijf data naar een tabel met de juiste configuratie."""
     try:
+        logging.info(f"Start schrijven data naar tabel {table} met {len(df)} rijen")
+        
         @event.listens_for(engine, "before_cursor_execute")
         def receive_before_cursor_execute(conn, cursor, statement, params, context, executemany):
             if executemany:
@@ -299,6 +301,7 @@ def write_data(engine, df, table, config, laatste_sync=None):
                         df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
                     else:
                         temp_table_name = f"temp_table_{int(time.time())}"
+                        logging.info(f"Maak tijdelijke tabel {temp_table_name} aan")
                         df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
 
                         on_clause = " AND ".join([f"target.{col} = source.{col}" for col in config.unique_columns])
@@ -312,8 +315,10 @@ def write_data(engine, df, table, config, laatste_sync=None):
                             INSERT ({', '.join(df.columns)})
                             VALUES ({', '.join([f'source.{col}' for col in df.columns])});
                         """
+                        logging.info(f"Uitvoeren MERGE query voor tabel {table}")
                         connection.execute(text(merge_query))
                 else:
+                    logging.info(f"Directe insert voor tabel {table}")
                     df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
 
                 logging.info(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {table}")
@@ -321,11 +326,15 @@ def write_data(engine, df, table, config, laatste_sync=None):
 
             except Exception as e:
                 logging.error(f"Fout bij het toevoegen naar de database: {str(e)}")
+                # Log de volledige stack trace voor meer details
+                import traceback
+                logging.error(f"Stack trace: {traceback.format_exc()}")
                 return False
 
             finally:
                 if temp_table_name:
                     try:
+                        logging.info(f"Verwijderen tijdelijke tabel {temp_table_name}")
                         connection.execute(text(f"DROP TABLE {temp_table_name}"))
                         connection.commit()
                         logging.info(f"Tijdelijke tabel {temp_table_name} succesvol verwijderd.")
@@ -334,6 +343,9 @@ def write_data(engine, df, table, config, laatste_sync=None):
 
     except Exception as e:
         logging.error(f"Fout bij het maken van database verbinding: {str(e)}")
+        # Log de volledige stack trace voor meer details
+        import traceback
+        logging.error(f"Stack trace: {traceback.format_exc()}")
         return False
 
 def apply_table_writing(connection_string, df, table, laatste_sync=None, config_manager=None):

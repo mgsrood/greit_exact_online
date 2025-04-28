@@ -13,7 +13,7 @@ from datetime import datetime
 import pandas as pd
 import logging
 
-def afas(connection_string, config_manager):
+def afas(connection_string, config_manager, klant):
     """
     Hoofdfunctie voor het ophalen van AFAS data.
     

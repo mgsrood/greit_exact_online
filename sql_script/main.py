@@ -24,8 +24,6 @@ script_id = config_manager.setup_logger(
 )
 start_time = start_log()
 
-print(db_config["script_name"])
-
 # Starten script
 try:
     # Connectie strings ophalen
@@ -42,10 +40,10 @@ try:
             
         # Alleen applicatie Exact verwerken
         if applicatie == "Exact":
-            exact(connection_string, config_manager)
+            exact(connection_string, config_manager, klant)
         
         if applicatie == "AFAS":
-            afas(connection_string, config_manager)
+            afas(connection_string, config_manager, klant)
     
     # Einde script
     end_log(start_time)

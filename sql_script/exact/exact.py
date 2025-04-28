@@ -11,12 +11,11 @@ from exact.modules.type_mapping import apply_type_conversion
 from exact.modules.appending_functions import DataTransformer
 from exact.modules.synchronisation import SyncFormatManager
 from greit_exact_online.sql_script.utils.env_config import EnvConfig
-from greit_exact_online.sql_script.utils.log import set_logging_context
 from datetime import datetime
 import pandas as pd
 import logging
 
-def exact(connection_string, config_manager):
+def exact(connection_string, config_manager, klant):
     """
     Hoofdfunctie voor het ophalen van Exact Online data.
     
@@ -151,19 +150,34 @@ def exact(connection_string, config_manager):
                                 continue
                             
                             # Maak een DataTransformer instantie
-                            transformer = DataTransformer(config_manager)
+                            try:
+                                transformer = DataTransformer(config_manager)
+                            except Exception as e:
+                                logging.error(f"Fout bij maken DataTransformer instantie: {e}")
                             
                             # Mogelijke appending functies toepassen
-                            df_appended = transformer.transform_data(df, tabel, division_code, division_name)
+                            try:
+                                df_appended = transformer.transform_data(df, tabel, division_code, division_name)
+                            except Exception as e:
+                                logging.error(f"Fout bij toepassen appending functies: {e}")
                             
                             # Kolom mapping toepassen
-                            df_transformed = apply_column_mapping(df_appended, tabel, division_code)
+                            try:
+                                df_transformed = apply_column_mapping(df_appended, tabel, division_code)
+                            except Exception as e:
+                                logging.error(f"Fout bij toepassen kolom mapping: {e}")
                             
                             # Type conversie toepassen
-                            df_converted = apply_type_conversion(df_transformed, tabel)
+                            try:
+                                df_converted = apply_type_conversion(df_transformed, tabel)
+                            except Exception as e:
+                                logging.error(f"Fout bij toepassen type conversie: {e}")
 
                             # Rijen verwijderen
-                            apply_table_clearing(connection_string, table, division_code, reporting_year, laatste_sync)
+                            try:
+                                apply_table_clearing(connection_string, table, division_code, reporting_year, laatste_sync)
+                            except Exception as e:
+                                logging.error(f"Fout bij toepassen table clearing: {e}")
                             
                             # Rijen toevoegen
                             succes = apply_table_writing(connection_string, df_converted, tabel, laatste_sync)
@@ -175,12 +189,12 @@ def exact(connection_string, config_manager):
             # Logging van afronding 
             logging.info(f"GET Requests succesvol afgerond voor divisie: {division_name} ({division_code})")
             
-            # Laatste sync en rapportage jaar bijwerken
-            if errors_occurred is False:
-                config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
-                config_manager.update_reporting_year(connection_string)
-                logging.info(f"Script succesvol afgerond")
-                logging.info(f"Alle divisies succesvol verwerkt voor klant {env_config_dict['klant_naam']}")
+        # Laatste sync en rapportage jaar bijwerken
+        if errors_occurred is False:
+            config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
+            config_manager.update_reporting_year(connection_string)
+            logging.info(f"Script succesvol afgerond")
+            logging.info(f"Alle divisies succesvol verwerkt voor klant {klant}")
 
     except Exception as e:
-        logging.error(f"Fout bij het verwerken van de divisies voor klant {env_config_dict['klant_naam']}, laatste sync en rapportage jaar niet bijgewerkt")
+        logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")

@@ -5,7 +5,7 @@ class DataTransformer:
     def __init__(self, config_manager):
         self.config = config_manager
         self.klant = config_manager.klant
-        self.script = config_manager.script
+        self.script_name = config_manager.script_name
         self.script_id = config_manager.script_id
         self.connection_string = config_manager.connection_string
         self.auth_method = config_manager.auth_method
