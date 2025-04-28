@@ -6,11 +6,11 @@ sys.path.append(project_root)
 
 from exact.modules.get_request import current_division_call, execute_get_request, execute_divisions_call
 from exact.modules.clear_and_write import apply_table_clearing, apply_table_writing
+from greit_exact_online.sql_script.utils.env_config import EnvConfig
 from exact.modules.column_management import apply_column_mapping
 from exact.modules.type_mapping import apply_type_conversion
 from exact.modules.appending_functions import DataTransformer
 from exact.modules.synchronisation import SyncFormatManager
-from greit_exact_online.sql_script.utils.env_config import EnvConfig
 from datetime import datetime
 import pandas as pd
 import logging

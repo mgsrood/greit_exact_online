@@ -421,15 +421,15 @@ def transform_columns(df, column_mapping, division_code):
         ValueError: Als verplichte kolommen ontbreken
     """
     try:
-        # Voeg division toe als het ontbreekt
-        if 'Division' not in df.columns:
-            df['Division'] = division_code
-            logging.debug(f"Division kolom toegevoegd met waarde: {division_code}")
-
         # Voor lege DataFrames
         if df.empty:
             logging.info("Lege DataFrame ontvangen, retourneer lege DataFrame met correcte kolommen")
             return pd.DataFrame(columns=list(column_mapping.values()))
+
+        # Voeg division toe als het ontbreekt
+        if 'Division' not in df.columns:
+            df['Division'] = division_code
+            logging.debug(f"Division kolom toegevoegd met waarde: {division_code}")
 
         # Hernoem kolommen
         df = df.rename(columns=column_mapping)
@@ -443,7 +443,13 @@ def transform_columns(df, column_mapping, division_code):
             logging.error(error_msg)
             raise ValueError(error_msg)
 
-        return df[new_columns]
+        # Log de DataFrame voor en na het selecteren van kolommen
+        logging.info(f"Aantal rijen voor kolom selectie: {len(df)}")
+        df = df[new_columns]
+        logging.info(f"Aantal rijen na kolom selectie: {len(df)}")
+        logging.info(f"Kolommen in output DataFrame: {df.columns.tolist()}")
+
+        return df
 
     except Exception as e:
         logging.error(f"Fout bij transformeren van kolommen: {str(e)}")

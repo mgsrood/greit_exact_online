@@ -280,19 +280,42 @@ def get_request(config_manager, division_code, url, endpoint, connection_string,
                     response.raise_for_status()
 
                     response_json = response.json()
+                    logging.debug(f"Response type: {type(response_json)}")
+                    logging.debug(f"Response content: {response_json}")
                 
                     # Verwerk JSON response
-                    if 'd' in response_json and 'results' in response_json['d']:
-                        results = response_json['d']['results']
-                        data.extend(results)
-                        
-                        # Controleer op volgende pagina
-                        full_url = response_json['d'].get('__next')
-                        if full_url:
-                            logging.info(f"Volgende pagina gevonden: {len(data)} records tot nu toe")
+                    if isinstance(response_json, dict):
+                        if 'd' in response_json:
+                            if isinstance(response_json['d'], list):
+                                # Lege lijst in 'd' key
+                                if response_json['d']:
+                                    data.extend(response_json['d'])
+                                full_url = None
+                            elif isinstance(response_json['d'], dict):
+                                if 'results' in response_json['d']:
+                                    results = response_json['d']['results']
+                                    if results:  # Alleen toevoegen als er resultaten zijn
+                                        data.extend(results)
+                                # Controleer op volgende pagina
+                                full_url = response_json['d'].get('__next')
+                                if full_url:
+                                    logging.info(f"Volgende pagina gevonden: {len(data)} records tot nu toe")
+                            else:
+                                # Onbekend type in 'd' key
+                                logging.warning(f"Onbekend type in 'd' key: {type(response_json['d'])}")
+                                full_url = None
+                        else:
+                            # Geen 'd' wrapper, directe response
+                            data.append(response_json)
+                            full_url = None
+                    elif isinstance(response_json, list):
+                        # Response is direct een lijst
+                        if response_json:  # Alleen toevoegen als er resultaten zijn
+                            data.extend(response_json)
+                        full_url = None
                     else:
-                        # Directe JSON response zonder 'd' wrapper
-                        data.append(response_json)
+                        # Onbekend response type
+                        logging.error(f"Onbekend response type: {type(response_json)}")
                         full_url = None
 
                     time.sleep(1)  # Rate limiting
@@ -330,13 +353,15 @@ def get_request(config_manager, division_code, url, endpoint, connection_string,
                         return None
                 
                 except Exception as e:
-                    logging.error(f"Onverwachte fout: {e}")
+                    logging.error(f"Onverwachte fout tijdens verwerking response: {e}")
+                    logging.error(f"Response type: {type(response_json)}")
+                    logging.error(f"Response content: {response_json}")
                     return None
         
         # Verwerk de data
         if not data:
             logging.info(f"Geen data gevonden voor tabel {tabel}")
-            return pd.DataFrame()
+            return pd.DataFrame()  # Return een lege DataFrame in plaats van None
             
         df = pd.DataFrame(data)
         logging.info(f"Data succesvol opgehaald voor tabel {tabel}: {len(df)} records")
@@ -368,7 +393,7 @@ def execute_get_request(config_manager, division_code, url, endpoint, connection
 
     elif df.empty:
         logging.info(f"Geen data opgehaald voor tabel: {tabel} | {division_name} ({division_code})")
-        return None, False  # False, geen fout maar geen data
+        return df, False  # Return de lege DataFrame in plaats van None
 
     else:
         logging.info(f"Data succesvol opgehaald voor tabel: {tabel} | {division_name} ({division_code})")

@@ -48,37 +48,68 @@ class DataTransformer:
     def _append_order_lines(self, df):
         """Transformeer orderregels door ordergegevens toe te voegen aan elke regel"""
         orderregels = []
-        huidige_order = {}
-
-        for _, row in df.iterrows():
-            if pd.notna(row['OrderID']):
-                huidige_order = {
-                    'ApprovalStatusDescription': row['ApprovalStatusDescription'],
-                    'Approved': row['Approved'],
-                    'ApproverFullName': row['ApproverFullName'],
-                    'Created': row['Created'],
-                    'CreatorFullName': row['CreatorFullName'],
-                    'Currency': row['Currency'],
-                    'DeliverTo': row['DeliverTo'],
-                    'Order_Description': row['Description'],
-                    'Division': row['Division'],
-                    'InvoiceStatusDescription': row['InvoiceStatusDescription'],
-                    'InvoiceTo': row['InvoiceTo'],
-                    'OrderDate': row['OrderDate'],
-                    'OrderedBy': row['OrderedBy'],
-                    'OrderID': row['OrderID'],
-                    'OrderNumber': row['OrderNumber'],
-                    'Remarks': row['Remarks'],
-                    'ShippingMethodDescription': row['ShippingMethodDescription'],
-                    'StatusDescription': row['StatusDescription'],
-                    'YourRef': row['YourRef'],
-                }
-            else:
-                orderregel = row.copy()
-                orderregel.update(huidige_order)
-                orderregels.append(orderregel)
         
-        return pd.DataFrame(orderregels)
+        logging.info(f"Aantal rijen in input DataFrame: {len(df)}")
+        logging.info(f"Kolommen in input DataFrame: {df.columns.tolist()}")
+        
+        for index, row in df.iterrows():
+            logging.debug(f"Verwerken order {index}: OrderID = {row.get('OrderID')}")
+            
+            # Basis ordergegevens
+            order_data = {
+                'ApprovalStatusDescription': row.get('ApprovalStatusDescription'),
+                'Approved': row.get('Approved'),
+                'ApproverFullName': row.get('ApproverFullName'),
+                'Created': row.get('Created'),
+                'CreatorFullName': row.get('CreatorFullName'),
+                'Currency': row.get('Currency'),
+                'DeliverTo': row.get('DeliverTo'),
+                'Order_Description': row.get('Description'),
+                'Division': row.get('Division'),
+                'InvoiceStatusDescription': row.get('InvoiceStatusDescription'),
+                'InvoiceTo': row.get('InvoiceTo'),
+                'OrderDate': row.get('OrderDate'),
+                'OrderedBy': row.get('OrderedBy'),
+                'OrderID': row.get('OrderID'),
+                'OrderNumber': row.get('OrderNumber'),
+                'Remarks': row.get('Remarks'),
+                'ShippingMethodDescription': row.get('ShippingMethodDescription'),
+                'StatusDescription': row.get('StatusDescription'),
+                'YourRef': row.get('YourRef'),
+            }
+            
+            # Verwerk SalesOrderLines
+            sales_lines = row.get('SalesOrderLines', {}).get('results', [])
+            logging.debug(f"Aantal orderregels gevonden: {len(sales_lines)}")
+            
+            if not sales_lines:
+                logging.warning(f"Geen orderregels gevonden voor order {order_data.get('OrderID')}")
+                continue
+                
+            for line in sales_lines:
+                line_data = {
+                    'AmountDC': line.get('AmountDC'),
+                    'CostCenterDescription': line.get('CostCenterDescription'),
+                    'CostPriceFC': line.get('CostPriceFC'),
+                    'CostUnitDescription': line.get('CostUnitDescription'),
+                    'DeliveryDate': line.get('DeliveryDate'),
+                    'Description': line.get('Description'),
+                    'Discount': line.get('Discount'),
+                    'ID': line.get('ID'),
+                    'Item': line.get('Item'),
+                    'LineNumber': line.get('LineNumber'),
+                    'Quantity': line.get('Quantity'),
+                    'VATAmount': line.get('VATAmount'),
+                    'VATPercentage': line.get('VATPercentage')
+                }
+                
+                # Combineer order en regel data
+                combined_data = {**order_data, **line_data}
+                orderregels.append(combined_data)
+        
+        result_df = pd.DataFrame(orderregels)
+        
+        return result_df
 
     def _append_quotation_lines(self, df):
         """Transformeer offerteregels door offertegegevens toe te voegen aan elke regel"""
