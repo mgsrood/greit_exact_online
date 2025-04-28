@@ -141,7 +141,7 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync):
                         logging.info(f"Tabel {table} succesvol geleegd voor omgeving {omgeving_id}.")
                         return rows_deleted
                 except (ValueError, TypeError) as e:
-                    logging.warning(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
+                    logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
             
             # Standaard operatie op basis van mode en omgeving_id
             if config.mode == 'truncate':
@@ -193,7 +193,7 @@ def write_data(engine, df, table, config, laatste_sync):
                         logging.info(f"DataFrame succesvol toegevoegd aan de tabel: {table} ({len(df)} rijen)")
                         return
                 except (ValueError, TypeError) as e:
-                    logging.warning(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard MERGE operatie.")
+                    logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard MERGE operatie.")
             
             # Alleen voor mode 'none' met geldige laatste_sync, gebruik MERGE
             temp_table_name = f"temp_table_{int(time.time())}"

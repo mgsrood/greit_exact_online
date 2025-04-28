@@ -178,7 +178,7 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None, l
                             logging.info(f"Tabel {table} succesvol geleegd voor divisie {division_code}.")
                             return rows_deleted
                     except (ValueError, TypeError) as e:
-                        logging.warning(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
+                        logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
 
                 if config.mode == 'truncate':
                     if division_code is not None:

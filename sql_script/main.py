@@ -41,7 +41,7 @@ try:
         config_manager.update_klant(klant)
             
         # Alleen applicatie Exact verwerken
-        if applicatie == "Exact" and klant != "PreventGroup" and klant != "Adminnit":
+        if applicatie == "Exact":
             exact(connection_string, config_manager)
         
         if applicatie == "AFAS":

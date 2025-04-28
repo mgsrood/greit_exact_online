@@ -69,7 +69,7 @@ def exact(connection_string, config_manager):
                 return False
                 
             if divisions_df is None or divisions_df.empty:
-                logging.warning("Geen relevante divisies gevonden")
+                logging.info("Geen relevante divisies gevonden")
                 return False
             
             # Kolom mapping toepassen
@@ -147,7 +147,7 @@ def exact(connection_string, config_manager):
                                 continue
                             
                             if df is None or df.empty:
-                                logging.warning(f"Geen data opgehaald voor tabel: {tabel} | {division_name} ({division_code})")
+                                logging.info(f"Geen data opgehaald voor tabel: {tabel} | {division_name} ({division_code})")
                                 continue
                             
                             # Maak een DataTransformer instantie

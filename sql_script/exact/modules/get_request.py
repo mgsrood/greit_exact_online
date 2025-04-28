@@ -50,7 +50,7 @@ def current_division_call(config_manager, url, connection_string):
     
             except requests.exceptions.HTTPError as e:
                 if response.status_code == 503:
-                    logging.warning(f"Server tijdelijk onbeschikbaar, poging {attempt + 1} van 3")
+                    logging.info(f"Server tijdelijk onbeschikbaar, poging {attempt + 1} van 3")
                     time.sleep(300)
                     continue
 
@@ -146,7 +146,7 @@ def divisions_call(config_manager, url, connection_string, current_division_code
                     
                 except requests.exceptions.HTTPError as e:
                     if response.status_code == 503:
-                        logging.warning(f"Server tijdelijk onbeschikbaar, poging {attempt + 1} van 3")
+                        logging.info(f"Server tijdelijk onbeschikbaar, poging {attempt + 1} van 3")
                         time.sleep(300)
                         continue
                         
@@ -300,7 +300,7 @@ def get_request(config_manager, division_code, url, endpoint, connection_string,
                     
                 except requests.exceptions.HTTPError as e:
                     if response.status_code == 503:
-                        logging.warning(f"Server tijdelijk onbeschikbaar, poging {attempt + 1} van 3")
+                        logging.info(f"Server tijdelijk onbeschikbaar, poging {attempt + 1} van 3")
                         time.sleep(300)
                         continue
                         

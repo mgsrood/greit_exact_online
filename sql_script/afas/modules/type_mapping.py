@@ -400,11 +400,11 @@ def convert_column_types(df, column_types):
                             if isinstance(value, (int, float)):
                                 if value == 0:
                                     return None
-                                logging.warning(f"Integer waarde gevonden voor UUID kolom {column}: {value}")
+                                logging.info(f"Integer waarde gevonden voor UUID kolom {column}: {value}")
                                 return None
                             return str(uuid.UUID(str(value)))
                         except (ValueError, TypeError) as e:
-                            logging.warning(f"Kon UUID niet converteren: {value} - {str(e)}")
+                            logging.info(f"Kon UUID niet converteren: {value} - {str(e)}")
                             return None
                             
                     df[column] = df[column].apply(convert_uuid)
@@ -499,7 +499,7 @@ def convert_column_types(df, column_types):
                     invalid_datetimes = df[column].isna()
                     if invalid_datetimes.any():
                         invalid_count = invalid_datetimes.sum()
-                        logging.warning(f"Aantal ongeldige datetime waarden in kolom {column}: {invalid_count}")
+                        logging.info(f"Aantal ongeldige datetime waarden in kolom {column}: {invalid_count}")
                         # In plaats van een error te gooien, zetten we ongeldige waarden op None
                         df[column] = df[column].where(pd.notna(df[column]), None)
                         

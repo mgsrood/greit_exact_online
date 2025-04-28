@@ -154,7 +154,7 @@ class ConfigManager:
                                 logging.info(f"Ophalen divisiecodes gelukt voor {self.klant}")
                                 return division_dict
                         except Exception as e:
-                            logging.warning(f"Poging {attempt + 1} mislukt voor {self.klant}: {e}")
+                            logging.info(f"Poging {attempt + 1} mislukt voor {self.klant}: {e}")
                             time.sleep(retry_delay)
                     
                     logging.error(f"Ophalen divisiecodes mislukt na {max_retries} pogingen voor {self.klant}")

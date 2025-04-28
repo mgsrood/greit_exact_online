@@ -89,7 +89,7 @@ def execute_get_request(api_string, token, connector, klantnaam, table):
         
     if df.empty:
         info_msg = f"Geen data opgehaald voor tabel: {table}"
-        logging.warning(f"{info_msg} | {klantnaam}")
+        logging.info(f"{info_msg} | {klantnaam}")
         return df, False
         
     success_msg = f"Ophalen DataFrame gelukt voor tabel: {table}"
