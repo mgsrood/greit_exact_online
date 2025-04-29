@@ -2,6 +2,7 @@ from utils.env_config import setup_environment
 from utils.log import start_log, end_log
 from utils.config import ConfigManager
 from exact.exact import exact
+from nmbrs.nmbrs import nmbrs
 from afas.afas import afas
 import logging
 
@@ -24,6 +25,12 @@ script_id = config_manager.setup_logger(
 )
 start_time = start_log()
 
+domain = "beuklonen"
+username = "kevin@finnit.nl"
+token = "f8e3f91ec2e34a85ba5be8389713cfc6"
+
+nmbrs(config_manager, domain, username, token)
+"""
 # Starten script
 try:
     # Connectie strings ophalen
@@ -50,4 +57,4 @@ try:
     
 except Exception as e:
     logging.error(f"Fout tijdens uitvoeren script: {e}")
-    raise
+    raise"""

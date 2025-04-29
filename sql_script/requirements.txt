@@ -1,0 +1,7 @@
+msal==1.32.0
+numpy==2.2.5
+pandas==2.2.3
+pyodbc==5.1.0
+python-dotenv==1.1.0
+Requests==2.32.3
+SQLAlchemy==2.0.27

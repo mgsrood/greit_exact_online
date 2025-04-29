@@ -1,14 +1,13 @@
-from afas.modules.clear_and_write import apply_table_clearing, apply_table_writing
-from afas.modules.type_mapping import apply_type_conversion, add_environment_id
-from afas.modules.get_request import execute_get_request
-from afas.modules.get_request import SyncFormatManager
+from nmbrs.modules.clear_and_write import apply_table_clearing, apply_table_writing
+from nmbrs.modules.type_mapping import apply_type_conversion, add_environment_id
+from nmbrs.modules.soap import SoapManager
 from datetime import datetime
 import pandas as pd
 import logging
 
-def afas(connection_string, config_manager, klant):
+def nmbrs(config_manager, domain, username, token):
     """
-    Hoofdfunctie voor het ophalen van AFAS data.
+    Hoofdfunctie voor het ophalen van NMBRS data.
     
     Args:
         connection_string: Connectiestring voor de database
@@ -16,7 +15,15 @@ def afas(connection_string, config_manager, klant):
         klant: Klantnaam
     """
     
-    try:
+    # SOAP Manager initialiseren
+    soap_manager = SoapManager(config_manager, domain, username, token)
+    
+    # Debiteuren ophalen
+    debiteuren = soap_manager.execute_soap_request("Debiteuren")
+    print(debiteuren)
+    
+    
+    """try:
         # Klant configuratie
         errors_occurred = False
         nieuwe_laatste_sync = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -118,10 +125,16 @@ def afas(connection_string, config_manager, klant):
         if errors_occurred is False:
             config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
             config_manager.update_reporting_year(connection_string)
-            logging.info("Laatste sync en reporting year succesvol geüpdate")
-            logging.info(f"Script succesvol afgerond voor klant {klant}")
+            logging.info(f"Script succesvol afgerond")
+            logging.info(f"Alle divisies succesvol verwerkt voor klant {klant}")
         else:
             logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
 
     except Exception as e:
-        logging.error(f"Fout bij het uitvoeren van het script: {e}")
+        logging.error(f"Fout bij het uitvoeren van het script: {e}")"""
+        
+if __name__ == "__main__":
+    connection_string = "mssql+pyodbc://localhost:1433/Finnit_NMBRS?driver=ODBC+Driver+17+for+SQL+Server"
+    config_manager = SoapManager()
+    klant = "Finnit"
+    nmbrs(connection_string, config_manager, klant)

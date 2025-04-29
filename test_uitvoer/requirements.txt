@@ -1,6 +1,0 @@
-pyodbc
-python-dotenv
-requests
-pandas
-sqlalchemy
-numpy
