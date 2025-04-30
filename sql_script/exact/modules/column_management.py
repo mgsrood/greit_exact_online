@@ -443,12 +443,6 @@ def transform_columns(df, column_mapping, division_code):
             logging.error(error_msg)
             raise ValueError(error_msg)
 
-        # Log de DataFrame voor en na het selecteren van kolommen
-        logging.info(f"Aantal rijen voor kolom selectie: {len(df)}")
-        df = df[new_columns]
-        logging.info(f"Aantal rijen na kolom selectie: {len(df)}")
-        logging.info(f"Kolommen in output DataFrame: {df.columns.tolist()}")
-
         return df
 
     except Exception as e:

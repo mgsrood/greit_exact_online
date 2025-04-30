@@ -17,7 +17,7 @@ import time
 class TableConfig:
     mode: str = None
     unique_columns: list = None
-    administration_column: str = None
+    filter_column: str = None
 
 @dataclass
 class TableConfigManager:
@@ -25,70 +25,45 @@ class TableConfigManager:
 
     def __post_init__(self):
         self.configs = {
-            "Grootboekrekening": TableConfig(
+            "Debiteuren": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "GrootboekID"],
-                administration_column="Administratie_Code"
+                unique_columns=["DebtorID"],
+                filter_column=""
             ),
-            "GrootboekRubriek": TableConfig(
+            "Bedrijven": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "Grootboek_RubriekID"],
-                administration_column=""
+                unique_columns=["CompanyID"],
+                filter_column=""
             ),
-            "GrootboekMutaties": TableConfig(
-                mode="none",
-                unique_columns=["OmgevingID", "Boekjaar", "Code_Dagboek", "Nummer_Journaalpost", "Volgnummer_Journaalpost"],
-                administration_column="Administratie_Code"
-            ),
-            "Budget": TableConfig(
+            "FTE": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "Budget_Scenario_Code", "GrootboekID", "Boekjaar", "Boekperiode"],
-                administration_column="Administratie_Code"
+                unique_columns=["SchemaID"],
+                filter_column="CompanyID"
             ),
-            "Divisions": TableConfig(
+            "Werknemers": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID"],
-                administration_column="Administratie_Code"
+                unique_columns=["WerknemerID"],
+                filter_column="CompanyID"
             ),
-            "Medewerkers": TableConfig(
+            "Uurcodes": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "Administratie_Code", "GUID"],
-                administration_column="Administratie_Code"
+                unique_columns=["Uurcode"],
+                filter_column="CompanyID"
             ),
-            "Relaties": TableConfig(
+            "Uren_Vast": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "Naam"],
-                administration_column=""
+                unique_columns=["UurID"],
+                filter_column="CompanyID"
             ),
-            "Projecten": TableConfig(
+            "Uren_Variabel": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "Administratie_Code", "ProjectID"],
-                administration_column="Administratie_Code"
+                unique_columns=["UurID"],
+                filter_column="CompanyID"
             ),
-            "Urenregistratie": TableConfig(
+            "Uren_Schemas": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "Administratie_Code", "Urenregistratie_GUID"],
-                administration_column="Administratie_Code"
-            ),
-            "Verlof": TableConfig(
-                mode="truncate",
-                unique_columns=[],
-                administration_column="Administratie_Code"
-            ),
-            "VerzuimVerloop": TableConfig(
-                mode="truncate",
-                unique_columns=["OmgevingID", "Verzuimmelding_GUID"],
-                administration_column=""
-            ),
-            "VerzuimUren": TableConfig(
-                mode="truncate",
-                unique_columns=["OmgevingID", "Administratie_Code"],
-                administration_column="Administratie_Code"
-            ),
-            "Contracten": TableConfig(
-                mode="truncate",
-                unique_columns=["OmgevingID", "Administratie_Code", "Medewerker_GUID", "Arbeids_ContractID"],
-                administration_column="Administratie_Code"
+                unique_columns=["WerknemerID"],
+                filter_column="CompanyID"
             )
         }
 
@@ -114,7 +89,7 @@ def create_engine_with_auth(connection_string, auth_method="SQL", token_struct=N
     else:
         raise ValueError(f"Ongeldige authenticatie methode: {auth_method}. Gebruik 'SQL' of 'MEI'")
 
-def clear_data(engine, table, config, omgeving_id, laatste_sync):
+def clear_data(engine, table, config, company_id=None, werknemer_id=None, laatste_sync=None):
     """Verwijder data uit een tabel op basis van de configuratie."""
     try:
         with engine.connect() as connection:
@@ -128,40 +103,50 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync):
                     
                     if verschil_in_jaren > 1.2:
                         logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar volledige truncate voor {table}")
-                        if omgeving_id is not None:
+                        if company_id is not None and werknemer_id is not None:
                             result = connection.execute(
-                                text(f"DELETE FROM {table} WHERE OmgevingID = :omgeving_id"),
-                                {"omgeving_id": omgeving_id}
+                                text(f"DELETE FROM {table} WHERE CompanyID = :company_id AND WerknemerID = :werknemer_id"),
+                                {"company_id": company_id, "werknemer_id": werknemer_id}
                             )
                             rows_deleted = result.rowcount
+                            logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} en werknemer {werknemer_id} uit {table}")
+                        elif company_id is not None:
+                            result = connection.execute(
+                                text(f"DELETE FROM {table} WHERE CompanyID = :company_id"),
+                                {"company_id": company_id}
+                            )
+                            rows_deleted = result.rowcount
+                            logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} uit {table}")
                         else:
-                            result = connection.execute(text(f"TRUNCATE TABLE {table}"))
-                            rows_deleted = 0  # TRUNCATE geeft geen rowcount
+                            connection.execute(text(f"TRUNCATE TABLE {table}"))
+                            logging.info(f"Tabel {table} succesvol getruncate")
                         connection.commit()
-                        logging.info(f"Tabel {table} succesvol geleegd voor omgeving {omgeving_id}.")
-                        return rows_deleted
+                        return rows_deleted if company_id is not None else 0
                 except (ValueError, TypeError) as e:
                     logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
             
-            # Standaard operatie op basis van mode en omgeving_id
+            # Standaard operatie op basis van mode en company_id/werknemer_id
             if config.mode == 'truncate':
-                if omgeving_id is not None:
+                if company_id is not None and werknemer_id is not None:
                     result = connection.execute(
-                        text(f"DELETE FROM {table} WHERE OmgevingID = :omgeving_id"),
-                        {"omgeving_id": omgeving_id}
+                        text(f"DELETE FROM {table} WHERE CompanyID = :company_id AND WerknemerID = :werknemer_id"),
+                        {"company_id": company_id, "werknemer_id": werknemer_id}
                     )
                     rows_deleted = result.rowcount
+                    logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} en werknemer {werknemer_id} uit {table}")
+                elif company_id is not None:
+                    result = connection.execute(
+                        text(f"DELETE FROM {table} WHERE CompanyID = :company_id"),
+                        {"company_id": company_id}
+                    )
+                    rows_deleted = result.rowcount
+                    logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} uit {table}")
                 else:
-                    result = connection.execute(text(f"TRUNCATE TABLE {table}"))
-                    rows_deleted = 0  # TRUNCATE geeft geen rowcount
+                    connection.execute(text(f"TRUNCATE TABLE {table}"))
+                    logging.info(f"Tabel {table} succesvol getruncate")
+                    rows_deleted = 0
                 
                 connection.commit()
-                
-                if rows_deleted > 0:
-                    logging.info(f"Tabel {table} succesvol geleegd, {rows_deleted} rijen verwijderd.")
-                else:
-                    logging.info(f"Tabel {table} is leeg, geen rijen verwijderd.")
-                    
                 return rows_deleted
             else:
                 logging.info(f"Geen actie ondernomen voor tabel {table} (mode: {config.mode})")
@@ -170,7 +155,7 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync):
         logging.error(f"Fout bij het verwijderen van data uit {table}: {str(e)}")
         raise
 
-def write_data(engine, df, table, config, laatste_sync):
+def write_data(engine, df, table, config, laatste_sync=None):
     """Schrijf data naar een tabel met de juiste configuratie."""
     try:
         logging.info(f"Start schrijven data naar tabel {table} met {len(df)} rijen")
@@ -206,13 +191,13 @@ def write_data(engine, df, table, config, laatste_sync):
                 
                 # Bouw MERGE query
                 on_clause = " AND ".join([f"target.{col} = source.{col}" for col in config.unique_columns])
-                if config.administration_column:
-                    on_clause += f" AND target.{config.administration_column} = source.{config.administration_column}"
+                if config.filter_column:
+                    on_clause += f" AND target.{config.filter_column} = source.{config.filter_column}"
                 
                 update_set = ", ".join([f"target.{col} = source.{col}" 
                                       for col in df.columns 
                                       if col not in config.unique_columns and 
-                                      col != config.administration_column])
+                                      col != config.filter_column])
                 
                 merge_query = f"""
                 MERGE {table} AS target
@@ -257,7 +242,7 @@ def write_data(engine, df, table, config, laatste_sync):
         logging.error(f"Stack trace: {traceback.format_exc()}")
         raise
 
-def apply_table_clearing(connection_string, table, omgeving_id, laatste_sync, config_manager=None):
+def apply_table_clearing(connection_string, table, company_id=None, werknemer_id=None, laatste_sync=None, config_manager=None):
     """Pas tabel clearing toe met logging."""
     try:
         if config_manager is None:
@@ -289,13 +274,13 @@ def apply_table_clearing(connection_string, table, omgeving_id, laatste_sync, co
             token_struct
         )
         
-        rows_deleted = clear_data(engine, table, config, omgeving_id, laatste_sync)
+        rows_deleted = clear_data(engine, table, config, company_id, werknemer_id, laatste_sync)
         return rows_deleted > 0
     except Exception as e:
         logging.error(f"Fout bij het verwijderen van rijen of leegmaken van de tabel: {str(e)}")
         return False
 
-def apply_table_writing(df, connection_string, table, laatste_sync, config_manager=None):
+def apply_table_writing(df, connection_string, table, laatste_sync=None, config_manager=None):
     """Pas tabel schrijven toe met logging."""
     try:
         if config_manager is None:

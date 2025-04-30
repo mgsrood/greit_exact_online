@@ -4,40 +4,42 @@ import logging
 
 def get_new_tokens(refresh_token, client_id, client_secret, config_manager):
     """
-    Verkrijg nieuwe tokens van Exact Online.
+    Verkrijg nieuwe tokens van Nmbrs.
     
     Args:
         refresh_token: Huidige refresh token
-        client_id: Client ID voor Exact Online
-        client_secret: Client Secret voor Exact Online
+        client_id: Client ID voor Nmbrs
+        client_secret: Client Secret voor Nmbrs
         config_manager: Instantie van ConfigManager
     """
     # Endpoint voor het verkrijgen van een nieuwe access token
-    token_url = "https://start.exactonline.nl/api/oauth2/token"
+    token_url = "https://identityservice.nmbrs.com/connect/token"
     
     # Parameters voor het vernieuwen van het token
-    payload = {
-        "grant_type": "refresh_token",
-        "refresh_token": refresh_token,
-        "client_id": client_id,
-        "client_secret": client_secret
-    }
+    payload = f'grant_type=refresh_token&redirect_uri=https%3A%2F%2Ffinnit.nl%2F&client_id={client_id}&client_secret={client_secret}&refresh_token={refresh_token}'
     
     headers = {
-        "Content-Type": "application/x-www-form-urlencoded"  # Vereiste header voor OAuth 2.0
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Origin": "https://finnit.nl",
+        "Referer": "https://finnit.nl/",
+        "Connection": "keep-alive"
     }
 
     try:
         # Request maken om een nieuwe access token te verkrijgen
-        response = requests.post(token_url, data=payload, headers=headers)
-        response.raise_for_status()  # Raise exception voor niet-200 status codes
+        response = requests.post(token_url, headers=headers, data=payload)
+        response.raise_for_status()
         
         # Het JSON-antwoord parsen om de nieuwe access token en refresh token te krijgen
         tokens = response.json()
         new_access_token = tokens["access_token"]
-        new_refresh_token = tokens.get("refresh_token", refresh_token)  # Nieuwe refresh token of behoud de oude
+        new_refresh_token = tokens["refresh_token"]  # Nmbrs geeft altijd een nieuwe refresh token
         
-        logging.info("Nieuwe tokens succesvol opgehaald van Exact Online")
+        logging.info("Nieuwe tokens succesvol opgehaald van Nmbrs")
         return new_access_token, new_refresh_token
         
     except requests.exceptions.RequestException as e:

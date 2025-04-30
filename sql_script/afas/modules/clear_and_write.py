@@ -134,12 +134,12 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync):
                                 {"omgeving_id": omgeving_id}
                             )
                             rows_deleted = result.rowcount
+                            logging.info(f"Verwijderd {rows_deleted} rijen voor omgeving {omgeving_id} uit {table}")
                         else:
-                            result = connection.execute(text(f"TRUNCATE TABLE {table}"))
-                            rows_deleted = 0  # TRUNCATE geeft geen rowcount
+                            connection.execute(text(f"TRUNCATE TABLE {table}"))
+                            logging.info(f"Tabel {table} succesvol getruncate")
                         connection.commit()
-                        logging.info(f"Tabel {table} succesvol geleegd voor omgeving {omgeving_id}.")
-                        return rows_deleted
+                        return rows_deleted if omgeving_id is not None else 0
                 except (ValueError, TypeError) as e:
                     logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
             
@@ -151,17 +151,13 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync):
                         {"omgeving_id": omgeving_id}
                     )
                     rows_deleted = result.rowcount
+                    logging.info(f"Verwijderd {rows_deleted} rijen voor omgeving {omgeving_id} uit {table}")
                 else:
-                    result = connection.execute(text(f"TRUNCATE TABLE {table}"))
-                    rows_deleted = 0  # TRUNCATE geeft geen rowcount
+                    connection.execute(text(f"TRUNCATE TABLE {table}"))
+                    logging.info(f"Tabel {table} succesvol getruncate")
+                    rows_deleted = 0
                 
                 connection.commit()
-                
-                if rows_deleted > 0:
-                    logging.info(f"Tabel {table} succesvol geleegd, {rows_deleted} rijen verwijderd.")
-                else:
-                    logging.info(f"Tabel {table} is leeg, geen rijen verwijderd.")
-                    
                 return rows_deleted
             else:
                 logging.info(f"Geen actie ondernomen voor tabel {table} (mode: {config.mode})")

@@ -31,7 +31,7 @@ try:
     connection_dict = config_manager.get_connection_strings()
     
     for klant, (connection_string, type, applicatie) in connection_dict.items():
-        
+
         # Alleen type 1 verwerken
         if type != 1:
             continue
@@ -40,11 +40,14 @@ try:
         config_manager.update_klant(klant)
             
         # Alleen applicatie Exact verwerken
-        if applicatie == "Exact":
+        if applicatie == "Exact" and klant == "HailEurope B.V.":
             exact(connection_string, config_manager, klant)
         
         if applicatie == "AFAS":
             afas(connection_string, config_manager, klant)
+                    
+        """if applicatie == "Nmbrs":
+            nmbrs(connection_string, config_manager, klant)"""
     
     # Einde script
     end_log(start_time)

@@ -1,5 +1,6 @@
 from afas.modules.clear_and_write import apply_table_clearing, apply_table_writing
 from afas.modules.type_mapping import apply_type_conversion, add_environment_id
+from greit_exact_online.sql_script.utils.env_config import EnvConfig
 from afas.modules.get_request import execute_get_request
 from afas.modules.get_request import SyncFormatManager
 from datetime import datetime
@@ -17,6 +18,10 @@ def afas(connection_string, config_manager, klant):
     """
     
     try:
+        # Environment configuratie
+        env_config = EnvConfig()
+        env_config_dict = env_config.get_database_config()
+        
         # Klant configuratie
         errors_occurred = False
         nieuwe_laatste_sync = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -116,10 +121,12 @@ def afas(connection_string, config_manager, klant):
         
         # Laatste sync en rapportage jaar bijwerken
         if errors_occurred is False:
-            config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
-            config_manager.update_reporting_year(connection_string)
-            logging.info("Laatste sync en reporting year succesvol geüpdate")
             logging.info(f"Script succesvol afgerond voor klant {klant}")
+            
+            if env_config_dict["script_name"] == "Wijzigingen":
+                config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
+                config_manager.update_reporting_year(connection_string)
+                logging.info("Laatste sync en reporting year succesvol geüpdate")
         else:
             logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
 

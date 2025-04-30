@@ -171,58 +171,44 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None, l
                                     {"division_code": division_code}
                                 )
                                 rows_deleted = result.rowcount
+                                logging.info(f"Verwijderd {rows_deleted} rijen voor divisie {division_code} uit {table}")
                             else:
-                                result = connection.execute(text(f"TRUNCATE TABLE {table}"))
-                                rows_deleted = 0  # TRUNCATE geeft geen rowcount
+                                connection.execute(text(f"TRUNCATE TABLE {table}"))
+                                logging.info(f"Tabel {table} succesvol getruncate")
                             connection.commit()
-                            logging.info(f"Tabel {table} succesvol geleegd voor divisie {division_code}.")
-                            return rows_deleted
+                            return rows_deleted if division_code is not None else 0
                     except (ValueError, TypeError) as e:
                         logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
 
                 if config.mode == 'truncate':
                     if division_code is not None:
-                        # Log het aantal te verwijderen records
-                        count_query = text(f"SELECT COUNT(*) FROM {table} WHERE {config.administration_column} = :division_code")
-                        count_result = connection.execute(count_query, {"division_code": division_code})
-                        record_count = count_result.scalar()
-                        logging.info(f"Aantal te verwijderen records in {table}: {record_count}")
-                        
                         result = connection.execute(
                             text(f"DELETE FROM {table} WHERE {config.administration_column} = :division_code"),
                             {"division_code": division_code}
                         )
+                        rows_deleted = result.rowcount
+                        logging.info(f"Verwijderd {rows_deleted} rijen voor divisie {division_code} uit {table}")
                     else:
-                        # Log het aantal te verwijderen records
-                        count_query = text(f"SELECT COUNT(*) FROM {table}")
-                        count_result = connection.execute(count_query)
-                        record_count = count_result.scalar()
-                        logging.info(f"Aantal te verwijderen records in {table}: {record_count}")
-                        
-                        result = connection.execute(text(f"DELETE FROM {table}"))
+                        connection.execute(text(f"TRUNCATE TABLE {table}"))
+                        logging.info(f"Tabel {table} succesvol getruncate")
+                        rows_deleted = 0
                 elif config.mode == 'reporting_year' and reporting_year is not None and division_code is not None:
                     result = connection.execute(
                         text(f"DELETE FROM {table} WHERE ReportingYear >= :year AND {config.administration_column} = :division_code"),
                         {"year": reporting_year, "division_code": division_code}
                     )
+                    rows_deleted = result.rowcount
+                    logging.info(f"Verwijderd {rows_deleted} rijen voor divisie {division_code} en jaar {reporting_year} uit {table}")
                 else:
-                    logging.info(f"Geen actie ondernomen voor tabel {table}")
+                    logging.info(f"Geen actie ondernomen voor tabel {table} (mode: {config.mode})")
                     return 0
 
-                rows_deleted = result.rowcount
                 connection.commit()
-                
-                if rows_deleted > 0:
-                    logging.info(f"Tabel {table} succesvol geleegd, {rows_deleted} rijen verwijderd.")
-                else:
-                    logging.info(f"Tabel {table} is leeg, geen rijen verwijderd.")
-                    
                 return rows_deleted
                 
             except Exception as e:
                 connection.rollback()
                 logging.error(f"Fout bij het leegmaken van tabel {table}: {str(e)}")
-                # Log de volledige stack trace voor meer details
                 import traceback
                 logging.error(f"Stack trace: {traceback.format_exc()}")
                 return 0
@@ -281,12 +267,15 @@ def apply_table_clearing(connection_string, table, division_code=None, reporting
 def write_data(engine, df, table, config, laatste_sync=None):
     """Schrijf data naar een tabel met de juiste configuratie."""
     try:
-        logging.info(f"Start schrijven data naar tabel {table} met {len(df)} rijen")
-        
         @event.listens_for(engine, "before_cursor_execute")
         def receive_before_cursor_execute(conn, cursor, statement, params, context, executemany):
             if executemany:
                 cursor.fast_executemany = True
+
+        # Verwijder __metadata kolom als die bestaat
+        if '__metadata' in df.columns:
+            df = df.drop(columns=['__metadata'])
+            logging.info("__metadata kolom verwijderd uit DataFrame")
 
         with engine.connect() as connection:
             temp_table_name = None
@@ -301,7 +290,6 @@ def write_data(engine, df, table, config, laatste_sync=None):
                         df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
                     else:
                         temp_table_name = f"temp_table_{int(time.time())}"
-                        logging.info(f"Maak tijdelijke tabel {temp_table_name} aan")
                         df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
 
                         on_clause = " AND ".join([f"target.{col} = source.{col}" for col in config.unique_columns])
@@ -315,10 +303,8 @@ def write_data(engine, df, table, config, laatste_sync=None):
                             INSERT ({', '.join(df.columns)})
                             VALUES ({', '.join([f'source.{col}' for col in df.columns])});
                         """
-                        logging.info(f"Uitvoeren MERGE query voor tabel {table}")
                         connection.execute(text(merge_query))
                 else:
-                    logging.info(f"Directe insert voor tabel {table}")
                     df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
 
                 logging.info(f"DataFrame succesvol toegevoegd/bijgewerkt in de tabel: {table}")
@@ -326,15 +312,11 @@ def write_data(engine, df, table, config, laatste_sync=None):
 
             except Exception as e:
                 logging.error(f"Fout bij het toevoegen naar de database: {str(e)}")
-                # Log de volledige stack trace voor meer details
-                import traceback
-                logging.error(f"Stack trace: {traceback.format_exc()}")
                 return False
 
             finally:
                 if temp_table_name:
                     try:
-                        logging.info(f"Verwijderen tijdelijke tabel {temp_table_name}")
                         connection.execute(text(f"DROP TABLE {temp_table_name}"))
                         connection.commit()
                         logging.info(f"Tijdelijke tabel {temp_table_name} succesvol verwijderd.")
@@ -343,9 +325,6 @@ def write_data(engine, df, table, config, laatste_sync=None):
 
     except Exception as e:
         logging.error(f"Fout bij het maken van database verbinding: {str(e)}")
-        # Log de volledige stack trace voor meer details
-        import traceback
-        logging.error(f"Stack trace: {traceback.format_exc()}")
         return False
 
 def apply_table_writing(connection_string, df, table, laatste_sync=None, config_manager=None):
