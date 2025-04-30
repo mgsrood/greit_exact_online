@@ -40,7 +40,7 @@ try:
         config_manager.update_klant(klant)
             
         # Alleen applicatie Exact verwerken
-        if applicatie == "Exact" and klant == "HailEurope B.V.":
+        if applicatie == "Exact":
             exact(connection_string, config_manager, klant)
         
         if applicatie == "AFAS":
