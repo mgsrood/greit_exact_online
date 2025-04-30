@@ -2,3 +2,5 @@
 *.xlsx
 *.csv
 tempCodeRunnerFile.py
+.env.finnit
+.env.beuk
