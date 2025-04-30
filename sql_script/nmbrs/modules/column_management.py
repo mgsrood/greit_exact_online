@@ -45,6 +45,17 @@ class ColumnMappingConfig:
                 'schedule_week2.hoursSaturday': 'Uren_Zaterdag_Week2',
                 'schedule_week2.hoursSunday': 'Uren_Zondag_Week2',
             },
+            "Contracten": {
+                'employeeId': 'WerknemerID',
+                'CompanyID': 'CompanyID',
+                'employment_employmentId': 'ContractID',
+                'employment_startDate': 'Start_Datum',
+                'employment_endDate': 'Eind_Datum',
+                'employment_seniorityDate': 'InDienstNemen_Datum',
+                'employment_endContractReason.code': 'Reden_Code',
+                'employment_endContractReason.reason': 'Reden_Omschrijving',
+                'employment_changedDate': 'Wijzigings_Datum',
+            },
             "Uurcodes": {
                 'Code': 'Uurcode',
                 'Description': 'Omschrijving',

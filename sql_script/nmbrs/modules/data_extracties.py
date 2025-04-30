@@ -1,4 +1,4 @@
-from nmbrs.modules.get_request import get_debtor_list, get_companies_per_debtor, get_employee_schedules
+from nmbrs.modules.get_request import get_debtor_list, get_companies_per_debtor, get_employee_schedules, get_employee_employments
 from nmbrs.modules.data_loading import get_debiteuren_from_db, get_bedrijven_from_db
 from nmbrs.modules.clear_and_write import apply_table_clearing, apply_table_writing
 from nmbrs.modules.column_management import apply_column_mapping
@@ -10,7 +10,8 @@ import logging
 REST_TABLE_MAPPING = {
     "Debiteuren": get_debtor_list,
     "Bedrijven": get_companies_per_debtor,
-    "FTE": get_employee_schedules
+    "FTE": get_employee_schedules,
+    "Contracten": get_employee_employments
     # Hier kunnen later meer tabellen worden toegevoegd
 }
 
@@ -135,6 +136,54 @@ def extract_rest_data(config_manager, connection_string, table):
                 logging.info(f"FTE succesvol verwerkt voor bedrijf {bedrijfsnaam} ({verwerkte_bedrijven}/{totaal_bedrijven})")
             
             logging.info(f"Verwerking FTE voltooid voor alle {totaal_bedrijven} bedrijven")
+            return True
+
+        elif table == "Contracten":
+            # Voor contracten verwerken we per bedrijf
+            bedrijven_df = get_bedrijven_from_db(config_manager, connection_string)
+            if bedrijven_df is None or bedrijven_df.empty:
+                logging.error("Geen bedrijven gevonden in de database")
+                return False
+                
+            totaal_bedrijven = len(bedrijven_df)
+            verwerkte_bedrijven = 0
+            
+            for _, bedrijf in bedrijven_df.iterrows():
+                verwerkte_bedrijven += 1
+                company_id = bedrijf['CompanyID']
+                bedrijfsnaam = bedrijf['Naam']
+                logging.info(f"Verwerken contracten voor bedrijf {bedrijfsnaam} ({verwerkte_bedrijven}/{totaal_bedrijven})")
+                
+                # Data ophalen voor dit bedrijf
+                contracten_df = get_employee_employments(config_manager, connection_string, company_id)
+                if contracten_df is None or contracten_df.empty:
+                    logging.warning(f"Geen contracten gevonden voor bedrijf {bedrijfsnaam} ({verwerkte_bedrijven}/{totaal_bedrijven})")
+                    continue
+
+                # Kolom mapping toepassen
+                df_transformed = apply_column_mapping(contracten_df, table)
+                if df_transformed is None:
+                    logging.error(f"Fout bij kolom mapping voor {table} bij bedrijf {bedrijfsnaam} ({verwerkte_bedrijven}/{totaal_bedrijven})")
+                    continue
+                
+                # Type conversie toepassen
+                df_converted = apply_type_conversion(df_transformed, table)
+                if df_converted is None:
+                    logging.error(f"Fout bij type conversie voor {table} bij bedrijf {bedrijfsnaam} ({verwerkte_bedrijven}/{totaal_bedrijven})")
+                    continue
+                
+                # Rijen verwijderen voor dit bedrijf
+                apply_table_clearing(connection_string, table, company_id)
+                
+                # Rijen toevoegen voor dit bedrijf
+                succes = apply_table_writing(df_converted, connection_string, table)
+                if not succes:
+                    logging.error(f"Fout bij het schrijven van {table} data voor bedrijf {bedrijfsnaam} ({verwerkte_bedrijven}/{totaal_bedrijven})")
+                    continue
+                    
+                logging.info(f"Contracten succesvol verwerkt voor bedrijf {bedrijfsnaam} ({verwerkte_bedrijven}/{totaal_bedrijven})")
+            
+            logging.info(f"Verwerking contracten voltooid voor alle {totaal_bedrijven} bedrijven")
             return True
 
         else:

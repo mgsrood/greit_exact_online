@@ -40,6 +40,11 @@ class TableConfigManager:
                 unique_columns=["SchemaID"],
                 filter_column="CompanyID"
             ),
+            "Contracten": TableConfig(
+                mode="truncate",
+                unique_columns=["ContractID"],
+                filter_column="CompanyID"
+            ),
             "Werknemers": TableConfig(
                 mode="truncate",
                 unique_columns=["WerknemerID"],

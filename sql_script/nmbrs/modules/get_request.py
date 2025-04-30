@@ -370,5 +370,155 @@ def get_employee_schedules(config_manager, connection_string, company_id):
         logging.error(f"Fout tijdens ophalen FTE voor bedrijf {company_id}: {e}")
         return None
         
+def get_employee_employments(config_manager, connection_string, company_id):
+    """
+    Haalt de contracten (employments) op voor een specifiek bedrijf van Nmbrs via REST API.
+    
+    Args:
+        config_manager: Instantie van ConfigManager
+        connection_string: Connectiestring voor de database
+        company_id: ID van het bedrijf
         
+    Returns:
+        pd.DataFrame: DataFrame met contracten data
+    """
+    try:
+        # Configuraties ophalen
+        config_dict = config_manager.get_configurations(connection_string)
+        if not config_dict:
+            logging.error("Configuratiegegevens konden niet worden opgehaald")
+            return None
+
+        # Variabelen definiëren
+        access_token = config_dict['access_token']
+        subscription_key = config_dict['subscription_key']
         
+        base_url = f"https://api.nmbrsapp.com/api/companies/{company_id}/employees/employments"
+        all_data = []
+        
+        headers = {
+            "X-Subscription-Key": f"{subscription_key}",
+            "Accept": "application/json",
+            "Authorization": f"Bearer {access_token}"
+        }
+        
+        # Retry loop voor GET request
+        for attempt in range(3):
+            try:
+                current_page = 1
+                total_pages = None
+                
+                while total_pages is None or current_page <= total_pages:
+                    url = f"{base_url}?pageNumber={current_page}&pageSize=20"
+                    response = requests.get(url, headers=headers)
+                    response.raise_for_status()
+                    
+                    response_data = response.json()
+                    
+                    if not response_data or 'data' not in response_data:
+                        logging.info(f"Geen contracten gevonden voor bedrijf {company_id}")
+                        return pd.DataFrame()
+                    
+                    # Verwerk de data array uit de response
+                    data = response_data['data']
+                    all_data.extend(data)
+                    
+                    # Update paginering informatie
+                    if total_pages is None and 'pagination' in response_data:
+                        total_pages = response_data['pagination']['totalPages']
+                    
+                    logging.info(f"Pagina {current_page} van {total_pages} opgehaald: {len(data)} contracten")
+                    
+                    if current_page >= total_pages:
+                        break
+                        
+                    current_page += 1
+                    time.sleep(1)  # Rate limiting
+                
+                # Maak een DataFrame van alle verzamelde data
+                df = pd.DataFrame(all_data)
+                
+                # Voeg CompanyID toe aan de DataFrame
+                df['CompanyID'] = company_id
+                
+                # Klap de employments uit
+                if 'employments' in df.columns:
+                    # Explode de employments kolom en reset de index om de mapping te behouden
+                    df = df.explode('employments').reset_index(drop=True)
+                    
+                    # Maak een nieuwe DataFrame van de employments data
+                    employments_df = pd.json_normalize(df['employments'])
+                    
+                    # Reset de index om de mapping te behouden
+                    employments_df = employments_df.reset_index(drop=True)
+                    
+                    # Hernoem kolommen om duidelijk te maken dat ze bij het contract horen
+                    employment_columns = {col: f"employment_{col}" for col in employments_df.columns}
+                    employments_df = employments_df.rename(columns=employment_columns)
+                    
+                    # Voeg de basis kolommen toe aan elke rij
+                    employments_df['CompanyID'] = df['CompanyID']
+                    employments_df['employeeId'] = df['employeeId']
+                    
+                    # Verwerk de endContractReason data
+                    if 'employment_endContractReason' in employments_df.columns:
+                        # Maak een nieuwe DataFrame van de endContractReason data
+                        reason_df = pd.json_normalize(employments_df['employment_endContractReason'])
+                        
+                        # Hernoem kolommen voor de reden
+                        reason_columns = {col: f"employment_endContractReason_{col}" for col in reason_df.columns}
+                        reason_df = reason_df.rename(columns=reason_columns)
+                        
+                        # Voeg de nieuwe kolommen toe aan het originele DataFrame
+                        employments_df = pd.concat([employments_df, reason_df], axis=1)
+                        
+                        # Verwijder de originele endContractReason kolom
+                        employments_df = employments_df.drop(columns=['employment_endContractReason'])
+                    
+                    # Verwijder de originele employments kolom
+                    df = employments_df
+                
+                logging.info(f"Totaal aantal contracten opgehaald voor bedrijf {company_id}: {len(df)}")
+                return df
+                
+            except requests.exceptions.HTTPError as e:
+                if response.status_code == 503:
+                    logging.info(f"Server tijdelijk onbeschikbaar, poging {attempt + 1} van 3")
+                    time.sleep(300)
+                    continue
+                    
+                elif response.status_code == 401:
+                    logging.info("Token verlopen, nieuwe tokens ophalen")
+                    new_access_token, new_refresh_token = get_new_tokens(
+                        refresh_token=config_dict['refresh_token'],
+                        client_id=config_dict['client_id'],
+                        client_secret=config_dict['client_secret'],
+                        config_manager=config_manager
+                    )
+                    
+                    if not new_access_token or not new_refresh_token:
+                        logging.error("Nieuwe tokens konden niet worden opgehaald")
+                        return None
+                        
+                    # Tokens opslaan
+                    save_refresh_token(config_manager, connection_string, new_refresh_token)
+                    save_access_token(config_manager, connection_string, new_access_token)
+                    
+                    # Headers updaten en opnieuw proberen
+                    headers['Authorization'] = f'Bearer {new_access_token}'
+                    continue
+                    
+                else:
+                    logging.error(f"HTTP error: {e}")
+                    return None
+                
+            except Exception as e:
+                logging.error(f"Onverwachte fout: {e}")
+                return None
+                
+        logging.error("Maximaal aantal pogingen bereikt")
+        return None
+        
+    except Exception as e:
+        logging.error(f"Fout tijdens ophalen contracten voor bedrijf {company_id}: {e}")
+        return None

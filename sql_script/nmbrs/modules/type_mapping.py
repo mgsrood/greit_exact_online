@@ -48,6 +48,17 @@ class TypeMappingConfig:
                 'Uren_Zaterdag_Week2': 'decimal',
                 'Uren_Zondag_Week2': 'decimal',
             },
+            "Contracten": {
+                'CompanyID': 'nvarchar',
+                'WerknemerID': 'nvarchar',
+                'ContractID': 'nvarchar',
+                'Start_Datum': 'datetime',
+                'Eind_Datum': 'datetime',
+                'InDienstNemen_Datum': 'datetime',
+                'Reden_Code': 'nvarchar',
+                'Reden_Omschrijving': 'nvarchar',
+                'Wijzigings_Datum': 'datetime',
+            },
             "Werknemers": {
                 'CompanyID': 'int',
                 'WerknemerID': 'int',
