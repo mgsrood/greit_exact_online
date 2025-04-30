@@ -205,10 +205,10 @@ def exact(connection_string, config_manager, klant):
         if errors_occurred is False:
             logging.info(f"Script succesvol afgerond voor klant {klant}")
             
-            """if env_config_dict["script_name"] == "Wijzigingen":
+            if env_config_dict["script_name"] == "Wijzigingen":
                 config_manager.update_last_sync(connection_string, nieuwe_laatste_sync)
                 config_manager.update_reporting_year(connection_string)
-                logging.info("Laatste sync en reporting year succesvol geüpdate")"""
+                logging.info("Laatste sync en reporting year succesvol geüpdate")
         else:
             logging.error(f"Fout bij het verwerken van de divisies voor klant {klant}, laatste sync en rapportage jaar niet bijgewerkt")
 
