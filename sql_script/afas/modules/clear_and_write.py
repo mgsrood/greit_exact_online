@@ -82,12 +82,42 @@ class TableConfigManager:
             ),
             "VerzuimUren": TableConfig(
                 mode="truncate",
-                unique_columns=["OmgevingID", "Administratie_Code"],
+                unique_columns=[],
                 administration_column="Administratie_Code"
             ),
             "Contracten": TableConfig(
                 mode="truncate",
                 unique_columns=["OmgevingID", "Administratie_Code", "Medewerker_GUID", "Arbeids_ContractID"],
+                administration_column="Administratie_Code"
+            ),
+            "Abonnementen": TableConfig(
+                mode="none",
+                unique_columns=["OmgevingID", "Administratie_Code", "AbonnementID"],
+                administration_column="Administratie_Code"
+            ),
+            "CaseLogging": TableConfig(
+                mode="none",
+                unique_columns=["OmgevingID", "Administratie_Code", "Logregel"],
+                administration_column="Administratie_Code"
+            ),
+            "Dossiers": TableConfig(
+                mode="none",
+                unique_columns=["OmgevingID", "Administratie_Code", "DossierID", "Dossier_Nummer"],
+                administration_column="Administratie_Code"
+            ),
+            "Forecasts": TableConfig(
+                mode="none",
+                unique_columns=["OmgevingID", "Administratie_Code", "ForecastID"],
+                administration_column="Administratie_Code"
+            ),
+            "Roosters": TableConfig(
+                mode="none",
+                unique_columns=[],
+                administration_column="Administratie_Code"
+            ),
+            "Nacalculatie": TableConfig(
+                mode="none",
+                unique_columns=["OmgevingID", "Administratie_Code", "NacalculatieGUID"],
                 administration_column="Administratie_Code"
             )
         }
@@ -230,10 +260,6 @@ def write_data(engine, df, table, config, laatste_sync):
             except Exception as e:
                 connection.rollback()
                 logging.error(f"Fout bij het toevoegen naar de database: {str(e)}")
-                # Log de volledige stack trace voor meer details
-                import traceback
-                logging.error(f"Stack trace: {traceback.format_exc()}")
-                raise
                 
             finally:
                 if temp_table_name:
@@ -248,10 +274,6 @@ def write_data(engine, df, table, config, laatste_sync):
                         
     except Exception as e:
         logging.error(f"Fout bij het maken van database verbinding: {str(e)}")
-        # Log de volledige stack trace voor meer details
-        import traceback
-        logging.error(f"Stack trace: {traceback.format_exc()}")
-        raise
 
 def apply_table_clearing(connection_string, table, omgeving_id, laatste_sync, config_manager=None):
     """Pas tabel clearing toe met logging."""

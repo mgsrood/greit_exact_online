@@ -11,26 +11,27 @@ class SyncFormatManager:
     def _regular_connectors(self,laatste_sync):
         """Retourneert de AFAS connectors met eventuele filters."""
         return {
+            "Forecasts": f"Finnit_Forecasts?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "Divisions": "Finnit_Divisions",
             "GrootboekMutaties": f"Finnit_Grootboekmutaties?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "Grootboekrekening": "Finnit_Grootboekrekening",
             "GrootboekRubriek": "Finnit_GrootboekRubriek",
             "Budget": "Finnit_Budget",
+            "Projecten": "Finnit_Projecten",
+            "Abonnementen": f"Finnit_Abonnementen?filterfieldids=Gewijzigd_op&filtervalues={laatste_sync}&operatortypes=2",
+            "Relaties": "Finnit_Relaties",
+            "Nacalculatie": f"Finnit_Nacalculatie?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "BudgetProjecten": "Finnit_BudgetProjecten",
             "Urenregistratie": "Finnit_Urenregistratie",
             "Verlof": "Finnit_Verlof",
             "VerzuimUren": "Finnit_VerzuimUren",
             "VerzuimVerloop": "Finnit_VerzuimVerloop",
             "Medewerkers": "Finnit_Medewerkers",
-            "Projecten": "Finnit_Projecten",
-            "Relaties": "Finnit_Relaties",
             "Contracten": "Finnit_Contracten",
-            "Abonnementen": "Finnit_Abonnementen?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
-            "CaseLogging": "Finnit_CaseLogging?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
-            "Dossiers": "Finnit_Dossiers?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
-            "Forecasts": "Finnit_Forecasts?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
-            "Nacalculatie": "Finnit_Nacalculatie?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
-            "Roosters": "Finnit_Roosters?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2"
+            "CaseLogging": f"Finnit_CaseLogging?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
+            "Dossiers": f"Finnit_Dossiers?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
+            "Forecasts": f"Finnit_Forecasts?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
+            "Roosters": f"Finnit_Roosters?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2"
         }
 
     def _full_connectors(self, laatste_sync):
@@ -54,26 +55,25 @@ def get_request(api_string, token, endpoint):
         "Authorization": f"AfasToken {token}",
         "Content-Type": "application/json"
     }
-    
     url = f"{api_string}{endpoint}"
     params = {"skip": -1, "take": -1}
-    
     try:
+        logging.info(f"Request URL: {url}")
+        logging.info(f"Request params: {params}")
         response = requests.get(url, headers=headers, params=params)
+        logging.info(f"Response status code: {response.status_code}")
         response.raise_for_status()
-        
         data = response.json()
         rows = data.get("rows", [])
-        
         if not rows:
             return pd.DataFrame()
-            
         df = pd.DataFrame(rows)
         logging.info(f"Totaal aantal rijen opgehaald: {len(rows)}")
         return df
-        
     except requests.exceptions.RequestException as e:
         logging.error(f"Fout bij het ophalen van data van AFAS: {str(e)}")
+        if hasattr(e, 'response') and e.response is not None:
+            logging.error(f"Response content: {e.response.text}")
         return None
 
 def execute_get_request(api_string, token, connector, klantnaam, table):

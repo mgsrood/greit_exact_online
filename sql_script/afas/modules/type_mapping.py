@@ -288,7 +288,7 @@ class TypeMappingConfig:
                 "Prioriteit_Herstelcase": "nvarchar",
                 "Reactie_Datum": "datetime",
                 "TypeDossieritemID": "int",
-                "TypeDossierOmschrijving": "nvarchar",
+                "TypeDossieritemOmschrijving": "nvarchar",
                 "Woonplaats": "nvarchar",
                 "Postcode": "nvarchar",
             },
