@@ -91,8 +91,8 @@ class TableConfigManager:
                 administration_column="Administratie_Code"
             ),
             "Abonnementen": TableConfig(
-                mode="none",
-                unique_columns=["OmgevingID", "Administratie_Code", "AbonnementID"],
+                mode="truncate",
+                unique_columns=[],
                 administration_column="Administratie_Code"
             ),
             "CaseLogging": TableConfig(
@@ -112,7 +112,7 @@ class TableConfigManager:
             ),
             "Roosters": TableConfig(
                 mode="none",
-                unique_columns=[],
+                unique_columns=["OmgevingID", "Administratie_Code", "Medewerker_GUID", "Datum"],
                 administration_column="Administratie_Code"
             ),
             "Nacalculatie": TableConfig(
@@ -261,14 +261,26 @@ def write_data(engine, df, table, config, laatste_sync, script_name=None):
                     except (ValueError, TypeError) as e:
                         logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard MERGE operatie.")
                 
-                # Alleen voor mode 'none' met geldige laatste_sync, gebruik MERGE
+                # Controleer of er unique_columns zijn gedefinieerd
+                if not config.unique_columns:
+                    logging.info(f"Geen unique_columns gedefinieerd voor tabel {table}, gebruik simpele insert")
+                    df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
+                    logging.info(f"DataFrame succesvol toegevoegd aan de tabel: {table} ({len(df)} rijen)")
+                    return
+                
+                # Alleen voor mode 'none' met geldige laatste_sync en unique_columns, gebruik MERGE
                 temp_table_name = f"temp_table_{int(time.time())}"
                 logging.info(f"Maak tijdelijke tabel {temp_table_name} aan")
+                
+                # Verwijder eventuele dubbele rijen op basis van unique_columns
+                df = df.drop_duplicates(subset=config.unique_columns)
+                logging.info(f"Verwijderd dubbele rijen op basis van unique_columns: {config.unique_columns}")
+                
                 df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
                 
                 # Bouw MERGE query
                 on_clause = " AND ".join([f"target.{col} = source.{col}" for col in config.unique_columns])
-                if config.administration_column:
+                if config.administration_column and config.administration_column not in config.unique_columns:
                     on_clause += f" AND target.{config.administration_column} = source.{config.administration_column}"
                 
                 update_set = ", ".join([f"target.{col} = source.{col}" 

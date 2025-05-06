@@ -19,7 +19,7 @@ class SyncFormatManager:
             "GrootboekRubriek": "Finnit_GrootboekRubriek",
             "Budget": "Finnit_Budget",
             "Projecten": "Finnit_Projecten",
-            "Abonnementen": f"Finnit_Abonnementen?filterfieldids=Gewijzigd_op&filtervalues={laatste_sync}&operatortypes=2",
+            "Abonnementen": f"Finnit_Abonnementen",
             "Relaties": "Finnit_Relaties",
             "Nacalculatie": f"Finnit_Nacalculatie?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "BudgetProjecten": "Finnit_BudgetProjecten",

@@ -43,7 +43,7 @@ try:
         if applicatie == "Exact":
             exact(connection_string, config_manager, klant)
         
-        if applicatie == "AFAS":
+        if applicatie == "AFAS" and klant == "SecureVest B.V.":
             afas(connection_string, config_manager, klant)
         
         # Beuk            
