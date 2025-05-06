@@ -9,7 +9,7 @@ from greit_exact_online.sql_script.utils.database_connection import get_azure_sq
 from greit_exact_online.sql_script.utils.env_config import EnvConfig
 from sqlalchemy import create_engine, event, text
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import time
 
@@ -150,11 +150,60 @@ def create_engine_with_auth(connection_string, auth_method="SQL", token_struct=N
     else:
         raise ValueError(f"Ongeldige authenticatie methode: {auth_method}. Gebruik 'SQL' of 'MEI'")
 
-def clear_data(engine, table, config, division_code=None, reporting_year=None, laatste_sync=None):
+def clear_data(engine, table, config, division_code=None, reporting_year=None, laatste_sync=None, script_name=None):
     """Leeg een tabel volgens de gegeven configuratie."""
     try:
         with engine.connect() as connection:
             try:
+                # Controleer script_name voor volledige synchronisatie
+                if script_name == "Volledig":
+                    last_year = datetime.now() - timedelta(days=365)
+                    start_date = last_year.replace(day=1, month=1, hour=0, minute=0, second=0, microsecond=0)
+                    logging.info(f"Volledige synchronisatie gedetecteerd voor tabel {table}. Start datum: {start_date}")
+                    
+                    # Bepaal de juiste datum kolom en query op basis van de tabel
+                    if table == "Verkoopfacturen":
+                        date_column = "F_Factuurdatum"
+                        logging.info(f"Verkoopfacturen: Verwijderen van facturen vanaf {start_date} op basis van {date_column}")
+                        query = f"DELETE FROM {table} WHERE {date_column} >= :start_date"
+                        if division_code:
+                            query += f" AND {config.administration_column} = :division_code"
+                            logging.info(f"Verkoopfacturen: Filter op divisie {division_code}")
+                        result = connection.execute(
+                            text(query),
+                            {"start_date": start_date, "division_code": division_code}
+                        )
+                    elif table == "VerkoopOrders":
+                        date_column = "O_Orderdatum"
+                        logging.info(f"VerkoopOrders: Verwijderen van orders vanaf {start_date} op basis van {date_column}")
+                        query = f"DELETE FROM {table} WHERE {date_column} >= :start_date"
+                        if division_code:
+                            query += f" AND {config.administration_column} = :division_code"
+                            logging.info(f"VerkoopOrders: Filter op divisie {division_code}")
+                        result = connection.execute(
+                            text(query),
+                            {"start_date": start_date, "division_code": division_code}
+                        )
+                    elif table == "GrootboekMutaties":
+                        year_column = "Boekjaar"
+                        logging.info(f"GrootboekMutaties: Verwijderen van mutaties vanaf jaar {start_date.year} op basis van {year_column}")
+                        query = f"DELETE FROM {table} WHERE {year_column} >= :start_year"
+                        if division_code:
+                            query += f" AND {config.administration_column} = :division_code"
+                            logging.info(f"GrootboekMutaties: Filter op divisie {division_code}")
+                        result = connection.execute(
+                            text(query),
+                            {"start_year": start_date.year, "division_code": division_code}
+                        )
+                    else:
+                        logging.info(f"Tabel {table}: Geen specifieke datum logica voor volledige synchronisatie, overslaan")
+                        return 0
+                    
+                    rows_deleted = result.rowcount
+                    logging.info(f"Tabel {table}: Succesvol {rows_deleted} rijen verwijderd vanaf {start_date}")
+                    connection.commit()
+                    return rows_deleted
+
                 # Controleer laatste_sync als die is meegegeven
                 if laatste_sync:
                     try:
@@ -164,43 +213,46 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None, l
                         verschil_in_jaren = verschil_in_dagen / 365.0
                         
                         if verschil_in_jaren > 2:
-                            logging.info(f"Laatste sync is meer dan twee jaar geleden, overschakelen naar volledige truncate voor {table}")
+                            logging.info(f"Tabel {table}: Laatste sync is meer dan twee jaar geleden ({verschil_in_jaren:.1f} jaar), overschakelen naar volledige truncate")
                             if division_code is not None:
                                 result = connection.execute(
                                     text(f"DELETE FROM {table} WHERE {config.administration_column} = :division_code"),
                                     {"division_code": division_code}
                                 )
                                 rows_deleted = result.rowcount
-                                logging.info(f"Verwijderd {rows_deleted} rijen voor divisie {division_code} uit {table}")
+                                logging.info(f"Tabel {table}: Verwijderd {rows_deleted} rijen voor divisie {division_code}")
                             else:
                                 connection.execute(text(f"TRUNCATE TABLE {table}"))
-                                logging.info(f"Tabel {table} succesvol getruncate")
+                                logging.info(f"Tabel {table}: Succesvol getruncate")
                             connection.commit()
                             return rows_deleted if division_code is not None else 0
                     except (ValueError, TypeError) as e:
-                        logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
+                        logging.info(f"Tabel {table}: Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
 
                 if config.mode == 'truncate':
                     if division_code is not None:
+                        logging.info(f"Tabel {table}: Truncate mode met divisie filter {division_code}")
                         result = connection.execute(
                             text(f"DELETE FROM {table} WHERE {config.administration_column} = :division_code"),
                             {"division_code": division_code}
                         )
                         rows_deleted = result.rowcount
-                        logging.info(f"Verwijderd {rows_deleted} rijen voor divisie {division_code} uit {table}")
+                        logging.info(f"Tabel {table}: Verwijderd {rows_deleted} rijen voor divisie {division_code}")
                     else:
+                        logging.info(f"Tabel {table}: Volledige truncate")
                         connection.execute(text(f"TRUNCATE TABLE {table}"))
-                        logging.info(f"Tabel {table} succesvol getruncate")
+                        logging.info(f"Tabel {table}: Succesvol getruncate")
                         rows_deleted = 0
                 elif config.mode == 'reporting_year' and reporting_year is not None and division_code is not None:
+                    logging.info(f"Tabel {table}: Verwijderen op basis van rapportagejaar {reporting_year} en divisie {division_code}")
                     result = connection.execute(
                         text(f"DELETE FROM {table} WHERE ReportingYear >= :year AND {config.administration_column} = :division_code"),
                         {"year": reporting_year, "division_code": division_code}
                     )
                     rows_deleted = result.rowcount
-                    logging.info(f"Verwijderd {rows_deleted} rijen voor divisie {division_code} en jaar {reporting_year} uit {table}")
+                    logging.info(f"Tabel {table}: Verwijderd {rows_deleted} rijen voor divisie {division_code} en jaar {reporting_year}")
                 else:
-                    logging.info(f"Geen actie ondernomen voor tabel {table} (mode: {config.mode})")
+                    logging.info(f"Tabel {table}: Geen actie ondernomen (mode: {config.mode})")
                     return 0
 
                 connection.commit()
@@ -208,13 +260,13 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None, l
                 
             except Exception as e:
                 connection.rollback()
-                logging.error(f"Fout bij het leegmaken van tabel {table}: {str(e)}")
+                logging.error(f"Tabel {table}: Fout bij het leegmaken: {str(e)}")
                 import traceback
-                logging.error(f"Stack trace: {traceback.format_exc()}")
+                logging.error(f"Tabel {table}: Stack trace: {traceback.format_exc()}")
                 return 0
                 
     except Exception as e:
-        logging.error(f"Fout bij het maken van database verbinding voor tabel {table}: {str(e)}")
+        logging.error(f"Tabel {table}: Fout bij het maken van database verbinding: {str(e)}")
         return 0
 
 def apply_table_clearing(connection_string, table, division_code=None, reporting_year=None, laatste_sync=None, config_manager=None):
@@ -257,14 +309,14 @@ def apply_table_clearing(connection_string, table, division_code=None, reporting
             token_struct
         )
         
-        rows_deleted = clear_data(engine, table, config, division_code, reporting_year, laatste_sync)
+        rows_deleted = clear_data(engine, table, config, division_code, reporting_year, laatste_sync, db_config.get("script_name"))
         return rows_deleted > 0
 
     except Exception as e:
         logging.error(f"Fout bij het verwijderen van rijen of leegmaken van de tabel: {str(e)}")
         return False
     
-def write_data(engine, df, table, config, laatste_sync=None):
+def write_data(engine, df, table, config, laatste_sync=None, script_name=None):
     """Schrijf data naar een tabel met de juiste configuratie."""
     try:
         @event.listens_for(engine, "before_cursor_execute")
@@ -280,6 +332,17 @@ def write_data(engine, df, table, config, laatste_sync=None):
         with engine.connect() as connection:
             temp_table_name = None
             try:
+                # Controleer script_name voor volledige synchronisatie
+                if script_name == "Volledig":
+                    if table in ["Verkoopfacturen", "VerkoopOrders", "GrootboekMutaties"]:
+                        logging.info(f"Volledige synchronisatie gedetecteerd voor {table}. Direct schrijven van {len(df)} rijen")
+                        df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
+                        logging.info(f"{table}: Succesvol {len(df)} rijen geschreven")
+                        return True
+                    else:
+                        logging.info(f"Tabel {table}: Geen specifieke schrijf logica voor volledige synchronisatie, overslaan")
+                        return True
+
                 if config.mode == 'none' and laatste_sync:
                     huidige_datum = datetime.now()
                     laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
@@ -366,7 +429,7 @@ def apply_table_writing(connection_string, df, table, laatste_sync=None, config_
             token_struct
         )
         
-        success = write_data(engine, df, table, config, laatste_sync)
+        success = write_data(engine, df, table, config, laatste_sync, db_config.get("script_name"))
         
         if success:
             logging.info(f"Succesvol {len(df)} rijen toegevoegd aan de database")

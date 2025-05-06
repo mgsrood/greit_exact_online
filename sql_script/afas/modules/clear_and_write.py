@@ -117,7 +117,7 @@ class TableConfigManager:
             ),
             "Nacalculatie": TableConfig(
                 mode="none",
-                unique_columns=["OmgevingID", "Administratie_Code", "NacalculatieGUID"],
+                unique_columns=["OmgevingID", "Administratie_Code", "Nacalculatie_GUID"],
                 administration_column="Administratie_Code"
             )
         }
@@ -144,10 +144,33 @@ def create_engine_with_auth(connection_string, auth_method="SQL", token_struct=N
     else:
         raise ValueError(f"Ongeldige authenticatie methode: {auth_method}. Gebruik 'SQL' of 'MEI'")
 
-def clear_data(engine, table, config, omgeving_id, laatste_sync):
+def clear_data(engine, table, config, omgeving_id, laatste_sync, script_name=None):
     """Verwijder data uit een tabel op basis van de configuratie."""
     try:
         with engine.connect() as connection:
+            # Controleer script_name voor volledige synchronisatie
+            if script_name == "Volledig":
+                if table == "GrootboekMutaties":
+                    last_year = datetime.now().year - 1
+                    logging.info(f"Volledige synchronisatie gedetecteerd voor GrootboekMutaties. Start jaar: {last_year}")
+                    
+                    query = f"DELETE FROM {table} WHERE Boekjaar >= :start_year"
+                    if omgeving_id:
+                        query += f" AND OmgevingID = :omgeving_id"
+                        logging.info(f"GrootboekMutaties: Filter op omgeving {omgeving_id}")
+                    
+                    result = connection.execute(
+                        text(query),
+                        {"start_year": last_year, "omgeving_id": omgeving_id}
+                    )
+                    rows_deleted = result.rowcount
+                    logging.info(f"GrootboekMutaties: Succesvol {rows_deleted} rijen verwijderd vanaf jaar {last_year}")
+                    connection.commit()
+                    return rows_deleted
+                else:
+                    logging.info(f"Tabel {table}: Geen specifieke datum logica voor volledige synchronisatie, overslaan")
+                    return 0
+
             # Controleer laatste_sync als die is meegegeven
             if laatste_sync:
                 try:
@@ -157,46 +180,48 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync):
                     verschil_in_jaren = verschil_in_dagen / 365.0
                     
                     if verschil_in_jaren > 1.2:
-                        logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar volledige truncate voor {table}")
+                        logging.info(f"Tabel {table}: Laatste sync is meer dan een jaar geleden ({verschil_in_jaren:.1f} jaar), overschakelen naar volledige truncate")
                         if omgeving_id is not None:
                             result = connection.execute(
                                 text(f"DELETE FROM {table} WHERE OmgevingID = :omgeving_id"),
                                 {"omgeving_id": omgeving_id}
                             )
                             rows_deleted = result.rowcount
-                            logging.info(f"Verwijderd {rows_deleted} rijen voor omgeving {omgeving_id} uit {table}")
+                            logging.info(f"Tabel {table}: Verwijderd {rows_deleted} rijen voor omgeving {omgeving_id}")
                         else:
                             connection.execute(text(f"TRUNCATE TABLE {table}"))
-                            logging.info(f"Tabel {table} succesvol getruncate")
+                            logging.info(f"Tabel {table}: Succesvol getruncate")
                         connection.commit()
                         return rows_deleted if omgeving_id is not None else 0
                 except (ValueError, TypeError) as e:
-                    logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
+                    logging.info(f"Tabel {table}: Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
             
             # Standaard operatie op basis van mode en omgeving_id
             if config.mode == 'truncate':
                 if omgeving_id is not None:
+                    logging.info(f"Tabel {table}: Truncate mode met omgeving filter {omgeving_id}")
                     result = connection.execute(
                         text(f"DELETE FROM {table} WHERE OmgevingID = :omgeving_id"),
                         {"omgeving_id": omgeving_id}
                     )
                     rows_deleted = result.rowcount
-                    logging.info(f"Verwijderd {rows_deleted} rijen voor omgeving {omgeving_id} uit {table}")
+                    logging.info(f"Tabel {table}: Verwijderd {rows_deleted} rijen voor omgeving {omgeving_id}")
                 else:
+                    logging.info(f"Tabel {table}: Volledige truncate")
                     connection.execute(text(f"TRUNCATE TABLE {table}"))
-                    logging.info(f"Tabel {table} succesvol getruncate")
+                    logging.info(f"Tabel {table}: Succesvol getruncate")
                     rows_deleted = 0
                 
                 connection.commit()
                 return rows_deleted
             else:
-                logging.info(f"Geen actie ondernomen voor tabel {table} (mode: {config.mode})")
+                logging.info(f"Tabel {table}: Geen actie ondernomen (mode: {config.mode})")
                 return 0
     except Exception as e:
-        logging.error(f"Fout bij het verwijderen van data uit {table}: {str(e)}")
+        logging.error(f"Tabel {table}: Fout bij het verwijderen van data: {str(e)}")
         raise
 
-def write_data(engine, df, table, config, laatste_sync):
+def write_data(engine, df, table, config, laatste_sync, script_name=None):
     """Schrijf data naar een tabel met de juiste configuratie."""
     try:
         logging.info(f"Start schrijven data naar tabel {table} met {len(df)} rijen")
@@ -204,6 +229,17 @@ def write_data(engine, df, table, config, laatste_sync):
         with engine.connect() as connection:
             temp_table_name = None
             try:
+                # Controleer script_name voor volledige synchronisatie
+                if script_name == "Volledig":
+                    if table == "GrootboekMutaties":
+                        logging.info(f"Volledige synchronisatie gedetecteerd voor GrootboekMutaties. Direct schrijven van {len(df)} rijen")
+                        df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
+                        logging.info(f"GrootboekMutaties: Succesvol {len(df)} rijen geschreven")
+                        return
+                    else:
+                        logging.info(f"Tabel {table}: Geen specifieke schrijf logica voor volledige synchronisatie, overslaan")
+                        return
+
                 if config.mode == 'truncate':
                     # Voor truncate mode, gebruik simpele insert
                     df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
@@ -307,7 +343,7 @@ def apply_table_clearing(connection_string, table, omgeving_id, laatste_sync, co
             token_struct
         )
         
-        rows_deleted = clear_data(engine, table, config, omgeving_id, laatste_sync)
+        rows_deleted = clear_data(engine, table, config, omgeving_id, laatste_sync, db_config.get("script_name"))
         return rows_deleted > 0
     except Exception as e:
         logging.error(f"Fout bij het verwijderen van rijen of leegmaken van de tabel: {str(e)}")
@@ -345,7 +381,7 @@ def apply_table_writing(df, connection_string, table, laatste_sync, config_manag
             token_struct
         )
         
-        write_data(engine, df, table, config, laatste_sync)
+        write_data(engine, df, table, config, laatste_sync, db_config.get("script_name"))
         return True
     except Exception as e:
         logging.error(f"Fout bij het toevoegen naar database: {str(e)}")

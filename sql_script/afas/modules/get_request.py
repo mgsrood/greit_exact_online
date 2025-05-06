@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import requests
 import logging
@@ -34,16 +35,19 @@ class SyncFormatManager:
             "Roosters": f"Finnit_Roosters?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2"
         }
 
-    def _full_connectors(self, laatste_sync):
+    def _full_connectors(self):
         """Retourneert de AFAS connectors met eventuele filters."""
+        
+        last_year = datetime.now().year - 1
+        
         return {
-            "GrootboekMutaties": f"Finnit_Grootboekmutaties?filterfieldids=Boekjaar&filtervalues={laatste_sync}&operatortypes=2",
+            "GrootboekMutaties": f"Finnit_Grootboekmutaties?filterfieldids=Boekjaar&filtervalues={last_year}&operatortypes=2",
         }
         
     def return_connectors(self, laatste_sync):
         if self.script_name == "Volledig":
             logging.info("Volledige sync wordt uitgevoerd")
-            return self._full_connectors(laatste_sync)
+            return self._full_connectors()
         else:
             logging.info("Reguliere sync wordt uitgevoerd")
             return self._regular_connectors(laatste_sync)
