@@ -272,10 +272,6 @@ def write_data(engine, df, table, config, laatste_sync, script_name=None):
                 temp_table_name = f"temp_table_{int(time.time())}"
                 logging.info(f"Maak tijdelijke tabel {temp_table_name} aan")
                 
-                # Verwijder eventuele dubbele rijen op basis van unique_columns
-                df = df.drop_duplicates(subset=config.unique_columns)
-                logging.info(f"Verwijderd dubbele rijen op basis van unique_columns: {config.unique_columns}")
-                
                 df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
                 
                 # Bouw MERGE query
