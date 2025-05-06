@@ -202,6 +202,8 @@ def exact(connection_string, config_manager, klant):
                 logging.error(f"Fout bij GET Requests voor divisie: {division_name} ({division_code})")
             
         # Laatste sync en rapportage jaar bijwerken
+        config_manager.set_logging_context(administratiecode=None, tabel=None)
+        
         if errors_occurred is False:
             logging.info(f"Script succesvol afgerond voor klant {klant}")
             

@@ -45,7 +45,8 @@ try:
         
         if applicatie == "AFAS":
             afas(connection_string, config_manager, klant)
-                    
+        
+        # Beuk            
         """if applicatie == "Nmbrs":
             nmbrs(connection_string, config_manager, klant)"""
     
