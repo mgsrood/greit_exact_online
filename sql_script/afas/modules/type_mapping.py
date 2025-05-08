@@ -82,7 +82,8 @@ class TypeMappingConfig:
                 'Dagboek_Soort': 'nvarchar',
                 'KostenplaatsID': 'nvarchar',
                 'KostendragerID': 'nvarchar',
-                'Gewijzigd_Op': 'datetime'
+                'Gewijzigd_Op': 'datetime',
+                'AbonnementID': 'int',
             },
             "Divisions": {
                 "OmgevingID": "int",
