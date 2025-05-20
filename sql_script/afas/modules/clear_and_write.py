@@ -304,6 +304,7 @@ def write_data(engine, df, table, config, laatste_sync, script_name=None):
             except Exception as e:
                 connection.rollback()
                 logging.error(f"Fout bij het toevoegen naar de database: {str(e)}")
+                raise
                 
             finally:
                 if temp_table_name:
