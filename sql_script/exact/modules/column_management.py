@@ -57,6 +57,7 @@ class ColumnMappingConfig:
                 'CostCenterDescription': 'Kostenplaats',
                 'CostUnit': 'KostenDragerID',
                 'CostUnitDescription': 'KostenDrager',
+                'Document': 'DocumentID',
             },
             "GrootboekRubriek": {
                 'ID': 'ID',

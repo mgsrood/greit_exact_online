@@ -153,6 +153,7 @@ class TypeMappingConfig:
                 'Kostenplaats': 'nvarchar',
                 'KostenDragerID': 'nvarchar',
                 'KostenDrager': 'nvarchar',
+                'DocumentID': 'uniqueidentifier',
             },
             "Voorraad": {
                 'ID': 'uniqueidentifier',
@@ -400,11 +401,11 @@ class TypeMappingConfig:
                 'ID': 'uniqueidentifier',
                 'AdministratieCode': 'int',
                 'Categorie_omschrijving': 'nvarchar',
-                'Documentdatum': 'datetime',
+                'Documentdatum': 'date',
                 'Document_URL': 'nvarchar',
-                'GrootboekmutatieID': 'guid',
+                'GrootboekmutatieID': 'uniqueidentifier',
                 'Is_leeg': 'bit',
-                'Gewijzigd_op': 'datetime',
+                'Gewijzigd_op': 'date',
                 'Factuur_nummer': 'int',
                 'Document_type': 'int'
             }

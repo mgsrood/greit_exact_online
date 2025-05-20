@@ -104,7 +104,7 @@ def exact(connection_string, config_manager, klant):
             logging.error("Geen divisie codes kunnen ophalen")
             errors_occurred = True
             return False
-        
+
         # Loop door alle divisie codes
         for division_name, (division_code, divisie_status, volledige_sync) in division_codes.items():
             if divisie_status == 0 or divisie_status is None:

@@ -121,6 +121,11 @@ class TableConfigManager:
                 mode="none",
                 unique_columns=["Division"],
                 administration_column=""
+            ),
+            "Documenten": TableConfig(
+                mode="none",
+                unique_columns=["ID"],
+                administration_column="AdministratieCode"
             )
         }
 
