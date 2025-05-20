@@ -71,6 +71,10 @@ def current_division_call(config_manager, url, connection_string):
                     save_refresh_token(config_manager, connection_string, new_refresh_token)
                     save_access_token(config_manager, connection_string, new_access_token)
                     
+                    # Lokale token variabelen bijwerken
+                    access_token = new_access_token
+                    refresh_token = new_refresh_token
+                    
                     # Headers updaten en opnieuw proberen
                     headers['Authorization'] = f'Bearer {new_access_token}'
                     continue
@@ -166,6 +170,10 @@ def divisions_call(config_manager, url, connection_string, current_division_code
                         # Tokens opslaan
                         save_refresh_token(config_manager, connection_string, new_refresh_token)
                         save_access_token(config_manager, connection_string, new_access_token)
+                        
+                        # Lokale token variabelen bijwerken
+                        access_token = new_access_token
+                        refresh_token = new_refresh_token
                         
                         # Headers updaten en opnieuw proberen
                         headers['Authorization'] = f'Bearer {new_access_token}'
@@ -343,6 +351,10 @@ def get_request(config_manager, division_code, url, endpoint, connection_string,
                         # Tokens opslaan
                         save_refresh_token(config_manager, connection_string, new_refresh_token)
                         save_access_token(config_manager, connection_string, new_access_token)
+                        
+                        # Lokale token variabelen bijwerken
+                        access_token = new_access_token
+                        refresh_token = new_refresh_token
                         
                         # Headers updaten en opnieuw proberen
                         headers['Authorization'] = f'Bearer {new_access_token}'
