@@ -395,6 +395,18 @@ class TypeMappingConfig:
                 'City': 'nvarchar',
                 'HID': 'nvarchar',
                 'CompanySizeDescription': 'nvarchar'
+            },
+            "Documenten": {
+                'ID': 'uniqueidentifier',
+                'AdministratieCode': 'int',
+                'Categorie_omschrijving': 'nvarchar',
+                'Documentdatum': 'datetime',
+                'Document_URL': 'nvarchar',
+                'GrootboekmutatieID': 'guid',
+                'Is_leeg': 'bit',
+                'Gewijzigd_op': 'datetime',
+                'Factuur_nummer': 'int',
+                'Document_type': 'int'
             }
         }
 

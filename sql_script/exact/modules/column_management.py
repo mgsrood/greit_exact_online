@@ -391,6 +391,18 @@ class ColumnMappingConfig:
                 'City': 'City',
                 'HID': 'HID',
                 'CompanySizeDescription': 'CompanySizeDescription'
+            },
+            "Documenten": {
+                'ID': 'ID',
+                'Division': 'AdministratieCode',
+                'CategoryDescription': 'Categorie_omschrijving',
+                'DocumentDate': 'Documentdatum',
+                'DocumentViewUrl': 'Document_URL',
+                'FinancialTransactionEntryID': 'GrootboekmutatieID',
+                'HasEmptyBody': 'Is_leeg',
+                'Modified': 'Gewijzigd_op',
+                'SalesInvoiceNumber': 'Factuur_nummer',
+                'Type': 'Document_type'
             }
         }
         # Voeg alle bestaande mappings toe aan self.mappings
