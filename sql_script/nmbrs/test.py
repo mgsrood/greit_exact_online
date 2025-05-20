@@ -155,12 +155,7 @@ class SoapManager:
 
 if __name__ == "__main__":
     
-    # Nmbrs API configuratie
-    WSDL_URL = 'https://api.nmbrs.nl/soap/v3/ReportService.asmx?WSDL'
-    DOMAIN = 'beuklonen'  # Vervang dit met je eigen domain
-    USERNAME = 'kevin@finnit.nl'  # Vervang dit met je eigen username
-    TOKEN = 'f8e3f91ec2e34a85ba5be8389713cfc6'  # Vervang dit met je eigen password
-    
+
     soap_manager = SoapManager(DOMAIN, USERNAME, TOKEN)
     task_id = soap_manager.report_request(company_id=32885, year=2022)
 
