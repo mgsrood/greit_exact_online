@@ -118,7 +118,7 @@ class TableConfigManager:
                 administration_column="O_AdministratieCode"
             ),
             "Divisions": TableConfig(
-                mode="truncate",
+                mode="none",
                 unique_columns=["Division"],
                 administration_column=""
             )
@@ -213,6 +213,11 @@ def clear_data(engine, table, config, division_code=None, reporting_year=None, l
                         verschil_in_jaren = verschil_in_dagen / 365.0
                         
                         if verschil_in_jaren > 2:
+                            # Speciale behandeling voor Divisions tabel
+                            if table == "Divisions":
+                                logging.info(f"Tabel {table}: Laatste sync is meer dan twee jaar geleden ({verschil_in_jaren:.1f} jaar), maar overslaan van truncate voor Divisions tabel")
+                                return 0
+                            
                             logging.info(f"Tabel {table}: Laatste sync is meer dan twee jaar geleden ({verschil_in_jaren:.1f} jaar), overschakelen naar volledige truncate")
                             if division_code is not None:
                                 result = connection.execute(
@@ -332,6 +337,42 @@ def write_data(engine, df, table, config, laatste_sync=None, script_name=None):
         with engine.connect() as connection:
             temp_table_name = None
             try:
+                # Speciale behandeling voor Divisions tabel
+                if table == "Divisions":
+                    temp_table_name = f"temp_table_{int(time.time())}"
+                    df.to_sql(temp_table_name, engine, index=False, if_exists="replace", schema="dbo")
+
+                    # Eerst ophalen welke divisies al bestaan
+                    existing_divisions_query = "SELECT Division FROM Divisions"
+                    existing_divisions = set(row[0] for row in connection.execute(text(existing_divisions_query)))
+                    
+                    # Bepalen welke divisies nieuw zijn
+                    new_divisions = set(df['Division']) - existing_divisions
+                    if new_divisions:
+                        logging.info(f"Nieuwe divisies gevonden: {', '.join(map(str, new_divisions))}")
+
+                    # Specifieke merge query voor Divisions
+                    merge_query = f"""
+                    MERGE {table} AS target
+                    USING (SELECT * FROM {temp_table_name}) AS source
+                    ON (target.Division = source.Division)
+                    WHEN MATCHED THEN
+                        UPDATE SET 
+                            {', '.join([f'target.{col} = source.{col}' 
+                                      for col in df.columns 
+                                      if col != 'Division'])}
+                    WHEN NOT MATCHED THEN
+                        INSERT (Division, Status, Volledige_sync, {', '.join([col for col in df.columns if col != 'Division'])})
+                        VALUES (source.Division, 0, 0, {', '.join([f'source.{col}' for col in df.columns if col != 'Division'])});
+                    """
+                    connection.execute(text(merge_query))
+                    
+                    # Loggen van het resultaat
+                    if new_divisions:
+                        logging.info(f"Succesvol {len(new_divisions)} nieuwe divisies toegevoegd met Status=0 en Volledige_sync=0")
+                    logging.info(f"Divisions data succesvol gemerged met behoud van Status en Volledige_sync voor bestaande records")
+                    return True
+                
                 # Controleer script_name voor volledige synchronisatie
                 if script_name == "Volledig":
                     if table in ["Verkoopfacturen", "VerkoopOrders", "GrootboekMutaties"]:

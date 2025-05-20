@@ -14,6 +14,7 @@ from exact.modules.synchronisation import SyncFormatManager
 from datetime import datetime
 import pandas as pd
 import logging
+import time
 
 def exact(connection_string, config_manager, klant):
     """
@@ -98,14 +99,23 @@ def exact(connection_string, config_manager, klant):
         
         # Divisies ophalen
         division_codes = config_manager.get_division_codes(connection_string)
-        
+
         if not division_codes:
             logging.error("Geen divisie codes kunnen ophalen")
             errors_occurred = True
             return False
-
+        
         # Loop door alle divisie codes
-        for division_name, division_code in division_codes.items():
+        for division_name, (division_code, divisie_status, volledige_sync) in division_codes.items():
+            if divisie_status == 0 or divisie_status is None:
+                logging.info(f"Overslaan van GET Requests voor divisie: {division_name} ({division_code})")
+                continue
+            
+            if volledige_sync == 1:
+                laatste_sync = "2000-01-01T00:00:00"
+                reporting_year = 2000
+                logging.info(f"Volledige sync voor divisie: {division_name} ({division_code})")
+            
             logging.info(f"Verwerken divisie: {division_name} ({division_code})")
             
             # Stel de logging context in voor deze divisie

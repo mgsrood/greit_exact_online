@@ -424,7 +424,7 @@ def convert_column_types(df, column_types):
                 elif dtype == 'int':
                     df[column] = pd.to_numeric(df[column], errors='coerce').fillna(0).astype(int)
                 elif dtype == 'nvarchar':
-                    df[column] = df[column].astype(str)
+                    df[column] = df[column].astype(str).str.strip()
                 elif dtype == 'decimal':
                     df[column] = df[column].apply(lambda x: Decimal(x) if pd.notna(x) else None)
                 elif dtype == 'bit':

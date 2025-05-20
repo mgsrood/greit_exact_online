@@ -39,16 +39,16 @@ try:
         # Update de klantnaam voor logging
         config_manager.update_klant(klant)
             
-        # Alleen applicatie Exact verwerken
+        """# Alleen applicatie Exact verwerken
         if applicatie == "Exact":
             exact(connection_string, config_manager, klant)
         
-        if applicatie == "AFAS":
-            afas(connection_string, config_manager, klant)
+        if applicatie == "AFAS" and klant == "Ternair":
+            afas(connection_string, config_manager, klant)"""
         
         # Beuk            
-        """if applicatie == "Nmbrs":
-            nmbrs(connection_string, config_manager, klant)"""
+        if applicatie == "Nmbrs":
+            nmbrs(connection_string, config_manager, klant)
     
     # Einde script
     end_log(start_time)

@@ -48,10 +48,14 @@ def afas(connection_string, config_manager, klant):
             return False
 
         # Endpoint loop
-        for klant, (omgeving_id, api_string, token, status) in environment_dict.items():
+        for klant, (omgeving_id, api_string, token, status, volledige_sync) in environment_dict.items():
             if status == 0:
                 logging.info(f"Overslaan van GET Requests voor omgeving: {klant}")
                 continue
+            
+            if volledige_sync == 1:
+                laatste_sync = "2000-01-01T00:00:00"
+                logging.info(f"Volledige sync voor omgeving: {klant}")
             
             # Stel de logging context in voor deze omgeving
             config_manager.set_logging_context(administratiecode=omgeving_id, tabel=None)

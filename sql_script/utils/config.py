@@ -148,7 +148,7 @@ class ConfigManager:
                         try:
                             cursor.execute('SELECT * FROM Divisions')
                             rows = cursor.fetchall()
-                            division_dict = {entry[2]: entry[1] for entry in rows}
+                            division_dict = {entry[2]: (entry[1], entry[9], entry[10]) for entry in rows}
                             
                             if division_dict:
                                 logging.info(f"Ophalen divisiecodes gelukt voor {self.klant}")
@@ -216,7 +216,7 @@ class ConfigManager:
         """Haal omgevings configuratie gegevens op uit de database"""
         cursor.execute('SELECT * FROM Omgeving')
         rows = cursor.fetchall()
-        return {row[1]: (row[0], row[2], row[3], row[4]) for row in rows}
+        return {row[1]: (row[0], row[2], row[3], row[4], row[5]) for row in rows}
 
     def create_environment_dict(self,connection_string):
         """
