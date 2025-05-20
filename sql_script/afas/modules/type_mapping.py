@@ -133,7 +133,9 @@ class TypeMappingConfig:
                 "Voortgang_Percentage": "decimal",
                 "Decharge_Verzonden": "bit",
                 "Afgemeld": "bit",
-                "Gewijzigd_Op": "datetime"
+                "Gewijzigd_Op": "datetime",
+                "Termijnbedrag": "decimal",
+                "Gereed": "bit",
             },
             "Relaties": {
                 "OmgevingID": "int",
@@ -390,8 +392,21 @@ def convert_column_types(df, column_types):
         
         for column, dtype in column_types.items():
             if column not in df.columns:
-                raise ValueError(f"Kolom '{column}' niet gevonden in DataFrame.")
-                
+                logging.info(f"Kolom '{column}' uit mapping niet gevonden in DataFrame. Kolom wordt toegevoegd met standaardwaarde voor type '{dtype}'.")
+
+                if dtype in ['int', 'tinyint']:
+                    df[column] = 0
+                elif dtype == 'decimal':
+                    df[column] = None 
+                elif dtype == 'bit':
+                    df[column] = False
+                elif dtype in ['date', 'datetime']:
+                    df[column] = pd.NaT
+                elif dtype == 'uniqueidentifier':
+                    df[column] = None
+                else:
+                    df[column] = ''
+                    
             try:
                 if dtype == 'uniqueidentifier':
                     def convert_uuid(value):

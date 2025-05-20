@@ -49,9 +49,14 @@ class SyncFormatManager:
             logging.info("Volledige sync wordt uitgevoerd")
             return self._full_connectors()
         else:
-            logging.info("Reguliere sync wordt uitgevoerd")
+            huidige_datum = datetime.now()
+            laatste_sync_datum = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S")
+            verschil_in_jaren = (huidige_datum - laatste_sync_datum).days / 365
+
+            is_reset_sync = verschil_in_jaren > 2
+            logging.info(f"{'Volledige' if is_reset_sync else 'Reguliere'} sync wordt uitgevoerd")
+            
             return self._regular_connectors(laatste_sync)
-        
 
 def get_request(api_string, token, endpoint):
     """Voert een GET request uit naar de AFAS API en retourneert de data als DataFrame."""
