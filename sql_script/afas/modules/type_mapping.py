@@ -371,6 +371,7 @@ class TypeMappingConfig:
                 "Parttime_Percentage": "decimal",
                 "Afdeling_Code": "nvarchar",
                 "Gewijzigd_Op": "datetime",
+                "Pro_forma": "bit",
             }
         }
 
