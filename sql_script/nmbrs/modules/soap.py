@@ -1,605 +1,487 @@
 import xml.etree.ElementTree as ET
+from jinja2 import Template
 import xml.dom.minidom
 import pandas as pd
 import requests
 import logging
+import time
 
 class SoapManager:
-    def __init__(self, config_manager, domain, username, token):
-        self.config = config_manager
-        self.logger = config_manager.logger
-        self.script_name = config_manager.script_name
+    
+    def __init__(self, domain, username, token):
         self.domain = domain
         self.username = username
         self.token = token
         self.base_url = "https://api.nmbrs.nl"
-        
-    def soap_requests(self):
-        """Retourneert de NMBRS SOAP requests met alle benodigde parameters."""
-        return {
-            "ReportRequest": {
-                "endpoint": "ReportService",
-                "method": "ReportService/Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_Background",
-                "base_url": "https://api.nmbrs.nl",
-                "soap_action": "https://api.nmbrs.nl/soap/v3/ReportService/Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_Background",
-                "service_path": "ReportService.asmx",
-                "body_action": "Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_Background",
-                "element_name": "Report",
-                "namespace": "https://api.nmbrs.nl/soap/v3/ReportService",
-            }
-        }
-        
-    def get_soap_parameters(self, service_name):
-        """Retourneert de benodigde parameters voor een specifieke SOAP-service."""
-        requests = self.soap_requests()
-
-        if service_name not in requests:
-            logging.error(f"Service '{service_name}' niet gevonden.")
-            return None
-
-        service = requests[service_name]
-        
-        return {
-            "domain": self.domain,
-            "username": self.username,
-            "token": self.token,
-            "endpoint": service['endpoint'],
-            "soap_action": service['soap_action'],
-            "service_path": service['service_path'],
-            "body_action": service['body_action'],
-            "base_url": service['base_url'],
-            "element_name": service['element_name'],
-            "namespace": service['namespace'],
-        }
-
-    def report_request(self, company_id, year):
-        """Retourneert de Report GUID voor de looncomponenten per periode"""
-        
-        # Variabelen definieren
-        url = f"{self.base_url}/soap/v3/ReportService.asmx"
-        soap_action = "https://api.nmbrs.nl/soap/v3/ReportService/Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_Background"
-        
-        # Maak de headers voor de SOAP request
-        headers = {
-            "Content-Type": "text/xml; charset=utf-8",
-            "SOAPAction": soap_action
-        }
-        
-        # Bouw de body voor de SOAP request
-        body = f"""<?xml version="1.0" encoding="utf-8"?>
-        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rep="https://api.nmbrs.nl/soap/v3/ReportService">
+        self.namespace = "https://api.nmbrs.nl/soap/v3/ReportService"
+        self.download_namespace = "https://api.nmbrs.nl/soap/v3/Reports"
+        self.download_service_path = "Reports.svc"
+        self.service_path = "ReportService.asmx"
+        self.body_action = "Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_Background"
+        self.soap_action = f"{self.namespace}/{self.body_action}"
+    
+    SOAP_TEMPLATE = Template("""<?xml version="1.0" encoding="utf-8"?>
+    <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rep="{{ namespace }}">
         <soap:Header>
             <rep:AuthHeaderWithDomain>
-                <rep:Username>{self.username}</rep:Username>
-                <rep:Token>{self.token}</rep:Token>
-                <rep:Domain>{self.domain}</rep:Domain>
+                <rep:Username>{{ username }}</rep:Username>
+                <rep:Token>{{ token }}</rep:Token>
+                <rep:Domain>{{ domain }}</rep:Domain>
             </rep:AuthHeaderWithDomain>
         </soap:Header>
         <soap:Body>
-            <rep:Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_Background>
-                <rep:companyId>{company_id}</rep:companyId>
-                <rep:year>{year}</rep:year>
-            </rep:Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_Background>
+            <rep:{{ body_action }}>
+                <rep:companyId>{{ company_id }}</rep:companyId>
+                <rep:year>{{ year }}</rep:year>
+            </rep:{{ body_action }}>
         </soap:Body>
-        </soap:Envelope>
-        """
-        
-        # Verstuur de request naar de API
-        logging.info("SOAP request versturen voor looncomponenten rapport")
-        response = requests.post(url, data=body, headers=headers)
+    </soap:Envelope>
+    """)
+    
+    def build_request_body(self, company_id, year):
+        return self.SOAP_TEMPLATE.render(
+            username=self.username,
+            token=self.token,
+            domain=self.domain,
+            company_id=company_id,
+            year=year,
+            namespace=self.namespace,
+            body_action=self.body_action
+        )
 
-        # Verwerk de response
+    def report_request(self, company_id, year):
+        url = f"{self.base_url}/soap/v3/{self.service_path}"
+        headers = {
+            "Content-Type": "text/xml; charset=utf-8",
+            "SOAPAction": self.soap_action
+        }
+
+        body = self.build_request_body(company_id, year)
+
+        logging.info(f"Verstuur SOAP request naar {url}")
+        response = requests.post(url, data=body.encode("utf-8"), headers=headers)
+
         if response.status_code == 200:
-            # Parse de XML response
             root = ET.fromstring(response.text)
-            
-            # Print de volledige response voor debugging
-            dom = xml.dom.minidom.parseString(response.text)
-            pretty_xml = dom.toprettyxml()
-            logging.info(f"Response van report request:\n{pretty_xml}")
-            
-            # Zoek de GUID in de response
-            guid_element = root.find(".//{https://api.nmbrs.nl/soap/v3/ReportService}Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_BackgroundResult")
-            
+            ns = {'rep': self.namespace}
+
+            guid_element = root.find(".//rep:Reports_Accountant_Company_EmployeeWageComponentsPerRunPeriod_BackgroundResult", ns)
             if guid_element is not None and guid_element.text:
-                return guid_element.text.strip()  # Strip whitespace van de GUID
+                return guid_element.text.strip()
             else:
                 logging.error("Geen GUID gevonden in de response")
                 return None
         else:
-            logging.error(f"Fout bij het versturen van de SOAP request: {response.status_code}: {response.text}")
+            logging.error(f"Fout bij SOAP request: {response.status_code}\n{response.text}")
             return None
 
-    def execute_report_request(self, company_id, year):
-        """Voert de report request uit voor de opgegeven company_id en year."""
-        return self.report_request(company_id, year)
-    
-    def xml_to_dataframe(self, xml_string, element_name, namespace):
-        """
-        Zet een SOAP XML response om in een pandas DataFrame.
-        
-        Parameters:
-            - xml_string (str): De volledige XML-string van de SOAP-response.
-            - element_name (str): Het element waarvan je de gegevens wilt extraheren (bijv. 'EmployeeFunctionItem_V2').
-            - namespace (str): De namespace die moet worden gebruikt bij het zoeken naar de elementen.
-        
-        Returns:
-            - pandas DataFrame: Een DataFrame met de geëxtraheerde gegevens.
-        """
-        try:
-            # Parse de XML string
-            root = ET.fromstring(xml_string)
-            
-            # Verkrijg de namespace van de XML
-            namespaces = {'ns': namespace}  # Pas deze aan afhankelijk van de service
-            
-            # Zoek het hoofdelement waar we de gegevens willen extraheren
-            items = root.findall(f".//ns:{element_name}", namespaces)
-            
-            # Controleer of er items zijn om te verwerken
-            if not items:
-                logging.info(f"Geen items gevonden voor element '{element_name}' met namespace '{namespace}'")
-                return pd.DataFrame()  # Return een lege DataFrame
-            
-            # Lijst om de gegevens in op te slaan
-            data = []
-            
-            # Voor elk item (bijvoorbeeld EmployeeFunctionItem_V2), haal de relevante gegevens op
-            for item in items:
-                entry = {}
-                for child in item:
-                    tag_name = child.tag.split('}')[1] if '}' in child.tag else child.tag
-                    entry[tag_name] = child.text
-                
-                # Controleer of er geneste EmployeeFunctions zijn en verwerk deze
-                employee_functions = item.findall(".//ns:EmployeeFunctions/ns:EmployeeFunction", namespaces)
-                if employee_functions:
-                    functions_data = []
-                    for emp_func in employee_functions:
-                        # Controleer of de EmployeeFunction leeg is (met xsi:nil="true")
-                        function_data = {}
-                        for func_child in emp_func:
-                            # Verwerk de gegevens, maar sla lege elementen over
-                            tag_name = func_child.tag.split('}')[1] if '}' in func_child.tag else func_child.tag
-                            function_data[tag_name] = func_child.text if func_child.text else None
-                        functions_data.append(function_data)
-                    entry["EmployeeFunctions"] = functions_data
-                
-                # Voeg de entry toe aan de lijst van data
-                data.append(entry)
-            
-            # Zet de gegevens om in een pandas DataFrame
-            df = pd.DataFrame(data)
-            
-            # Ontvouwt geneste kolommen
-            for column in df.columns:
-                if isinstance(df[column].iloc[0], list) and isinstance(df[column].iloc[0][0], dict):
-                    df = df.explode(column, ignore_index=True)
-                    df = df.join(pd.json_normalize(df[column]).add_prefix(f'{column}_'))
-                    df = df.drop(columns=[column])
-            
-            return df
-            
-        except ET.ParseError as e:
-            logging.error(f"Fout bij het parsen van XML: {e}")
-            return pd.DataFrame()
-        except Exception as e:
-            logging.error(f"Onverwachte fout bij het converteren van XML naar DataFrame: {e}")
-            return pd.DataFrame()
-
-    def check_report_status(self, task_guid):
-        """Controleert de status van een report op basis van de task GUID"""
-        
-        # Variabelen definieren
-        url = f"{self.base_url}/soap/v3/ReportService.asmx"
-        
-        # Maak de headers voor de SOAP request
-        headers = {
-            "Content-Type": "text/xml; charset=utf-8",
-            "SOAPAction": "https://api.nmbrs.nl/soap/v3/ReportService/Reports_BackgroundTask_Result"
-        }
-        
-        # Bouw de body voor de SOAP request
-        body = f"""<?xml version="1.0" encoding="utf-8"?>
-            <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-            xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-            <soap:Header>
-                <AuthHeader xmlns="https://api.nmbrs.nl/soap/v3/ReportService">
-                <Username>{self.username}</Username>
-                <Token>{self.token}</Token>
-                </AuthHeader>
-            </soap:Header>
-            <soap:Body>
-                <Reports_BackgroundTask_Result xmlns="https://api.nmbrs.nl/soap/v3/ReportService">
-                <TaskId>{task_guid}</TaskId>
-                </Reports_BackgroundTask_Result>
-            </soap:Body>
-            </soap:Envelope>"""
-        
-        # Verstuur de request naar de API
-        logging.info(f"Status check versturen voor report met GUID: {task_guid}")
-        response = requests.post(url, data=body, headers=headers)
-
-        # Verwerk de response
-        if response.status_code == 200:
-            # Parse de XML response
-            root = ET.fromstring(response.text)
-            
-            # Zoek de status in de response
-            status_element = root.find(".//{https://api.nmbrs.nl/soap/v3/ReportService}Status")
-            
-            if status_element is not None and status_element.text:
-                return status_element.text
-            else:
-                logging.error("Geen status gevonden in de response")
-                return None
-        else:
-            logging.error(f"Fout bij het checken van de report status: {response.status_code}: {response.text}")
-            return None
-
-class OldSoapManager:
-    def __init__(self, config_manager, domain, username, token):
-        self.config = config_manager
-        self.logger = config_manager.logger
-        self.script_name = config_manager.script_name
-        self.domain = domain
-        self.username = username
-        self.token = token
-
-    def soap_requests(self):
-        """Retourneert de NMBRS SOAP requests met alle benodigde parameters."""
-        return {
-            "Bedrijven": {
-                "endpoint": "CompanyService",
-                "method": "CompanyService/List_GetAll",
-                "base_url": "https://api.nmbrs.nl",
-                "sandbox": False,
-                "soap_action": "https://api.nmbrs.nl/soap/v3/CompanyService/List_GetAll",
-                "service_path": "CompanyService.asmx",
-                "body_action": "List_GetAll",
-                "element_name": "Company",
-                "namespace": "https://api.nmbrs.nl/soap/v3/CompanyService",
-                "id_necessary": False,
-                "period_necessary": True,
-                "year_necessary": True,
-                "werknemer_id_necessary": False
-            },
-            "Werknemers": {
-                "endpoint": "EmployeeService",
-                "method": "EmployeeService/Function_GetAll_AllEmployeesByCompany_V2",
-                "base_url": "https://api.nmbrs.nl",
-                "sandbox": False,
-                "soap_action": "https://api.nmbrs.nl/soap/v3/EmployeeService/Function_GetAll_AllEmployeesByCompany_V2",
-                "service_path": "EmployeeService.asmx",
-                "body_action": "Function_GetAll_AllEmployeesByCompany_V2",
-                "element_name": "EmployeeFunctionItem_V2",
-                "namespace": "https://api.nmbrs.nl/soap/v3/EmployeeService",
-                "id_necessary": True,  
-                "period_necessary": False,  
-                "year_necessary": False,
-                "werknemer_id_necessary": False
-            },
-            "Uurcodes": {
-                "endpoint": "CompanyService",
-                "method": "CompanyService/HourModel2_GetHourCodes",
-                "base_url": "https://api.nmbrs.nl",
-                "sandbox": False,
-                "soap_action": "https://api.nmbrs.nl/soap/v3/CompanyService/HourModel2_GetHourCodes",
-                "service_path": "CompanyService.asmx",
-                "body_action": "HourModel2_GetHourCodes",
-                "element_name": "HourCode",
-                "namespace": "https://api.nmbrs.nl/soap/v3/CompanyService",
-                "id_necessary": True,
-                "period_necessary": False,
-                "year_necessary": False,
-                "werknemer_id_necessary": False
-            },
-            "Uurcodes_2": {
-                "endpoint": "CompanyService",
-                "method": "CompanyService/HourModel_GetHourCodes",
-                "base_url": "https://api.nmbrs.nl",
-                "sandbox": False,
-                "soap_action": "https://api.nmbrs.nl/soap/v3/CompanyService/HourModel_GetHourCodes",
-                "service_path": "CompanyService.asmx",
-                "body_action": "HourModel_GetHourCodes",
-                "element_name": "HourCode",
-                "namespace": "https://api.nmbrs.nl/soap/v3/CompanyService",
-                "id_necessary": True,
-                "period_necessary": False,
-                "year_necessary": False,
-                "werknemer_id_necessary": False
-            },
-            "Uren_Vast": {
-                "endpoint": "EmployeeService",
-                "method": "EmployeeService/WageComponentFixed_Get",
-                "base_url": "https://api.nmbrs.nl",
-                "sandbox": False,
-                "soap_action": "https://api.nmbrs.nl/soap/v3/EmployeeService/WageComponentFixed_Get",
-                "service_path": "EmployeeService.asmx",
-                "body_action": "WageComponentFixed_Get",
-                "element_name": "WageComponent",
-                "namespace": "https://api.nmbrs.nl/soap/v3/EmployeeService",
-                "id_necessary": False,
-                "period_necessary": True,
-                "year_necessary": True,
-                "werknemer_id_necessary": True
-            },
-            "Uren_Variabel": {
-                "endpoint": "EmployeeService",
-                "method": "EmployeeService/WageComponentVar_Get",
-                "base_url": "https://api.nmbrs.nl",
-                "sandbox": False,
-                "soap_action": "https://api.nmbrs.nl/soap/v3/EmployeeService/WageComponentVar_Get",
-                "service_path": "EmployeeService.asmx",
-                "body_action": "WageComponentVar_Get",
-                "element_name": "WageComponent",
-                "namespace": "https://api.nmbrs.nl/soap/v3/EmployeeService",
-                "id_necessary": False,
-                "period_necessary": True,
-                "year_necessary": True,
-                "werknemer_id_necessary": True
-            },
-            "Uren_Schemas": {
-                "endpoint": "EmployeeService",
-                "method": "EmployeeService/Schedule_Get",
-                "base_url": "https://api.nmbrs.nl",
-                "sandbox": False,
-                "soap_action": "https://api.nmbrs.nl/soap/v3/EmployeeService/Schedule_Get",
-                "service_path": "EmployeeService.asmx",
-                "body_action": "Schedule_Get",
-                "element_name": "Schedule_GetResult",
-                "namespace": "https://api.nmbrs.nl/soap/v3/EmployeeService",
-                "id_necessary": False,
-                "period_necessary": True,
-                "year_necessary": True,
-                "werknemer_id_necessary": True
-            }
-        }
-    
-    def get_soap_parameters(self, service_name):
-        """Retourneert de benodigde parameters voor een specifieke SOAP-service."""
-        requests = self.soap_requests()
-        if service_name not in requests:
-            logging.error(f"Service '{service_name}' niet gevonden.")
-            return None
-
-        service = requests[service_name]
-        
-        return {
-            "domain": self.domain,
-            "username": self.username,
-            "token": self.token,
-            "endpoint": service['endpoint'],
-            "soap_action": service['soap_action'],
-            "service_path": service['service_path'],
-            "body_action": service['body_action'],
-            "base_url": service['base_url'],
-            "sandbox": service['sandbox'],
-            "element_name": service['element_name'],
-            "namespace": service['namespace'],
-            "id_necessary": service['id_necessary'],
-            "period_necessary": service['period_necessary'],
-            "year_necessary": service['year_necessary'],
-            "werknemer_id_necessary": service['werknemer_id_necessary']
-        }
-    
-    def soap_request(self, service_name, domain, username, token, soap_action, endpoint, service_path, body_action, element_name, namespace, id_necessary=False, company_id=None, period_necessary=False, period=None, year_necessary=False, year=None, werknemer_id_necessary=False, werknemer_id=None, base_url=None, sandbox=False):
-        """
-        Haalt de gegevens op uit de NMBRS API met de SOAP request.
-        
-        Parameters:
-            - domain (str): Het domein waarvoor de gegevens opgevraagd worden.
-            - username (str): De gebruikersnaam voor authenticatie.
-            - token (str): Het token voor authenticatie.
-            - soap_action (str): De SOAPAction header voor de request.
-            - service_path (str): Het pad naar de service.
-            - body_action (str): De actie in de body van de SOAP-request.
-            - base_url (str): De basis-URL van de API (indien leeg, wordt de sandbox/ productie-URL gebruikt).
-            - sandbox (bool): Of het sandbox- of productie-omgeving betreft (standaard False voor sandbox).
-            
-        Returns:
-            - Response van de API-call.
-        """
-        # Kies de juiste basis-URL, of gebruik de meegegeven base_url
-        if not base_url:
-            base_url = "https://api-sandbox.nmbrs.nl" if sandbox else "https://api.nmbrs.nl"
-        
-        # Default SOAPAction als deze niet is meegegeven
-        if not soap_action:
-            soap_action = f"{base_url}/soap/v3/{service_path}/{body_action}"
-
-        # Bepaal de juiste namespace prefix op basis van de endpoint
-        endpoint_config = {
-            "CompanyService": {
-                "prefix": "com",
-                "id_parameter": "CompanyId"
-            },
-            "EmployeeService": {
-                "prefix": "emp",
-                "id_parameter": "CompanyID"
-            },
-            "DebtorService": {
-                "prefix": "deb",
-                "id_parameter": None
-            }
-        }
-        
-        config = endpoint_config.get(endpoint, {"prefix": "com", "id_parameter": "CompanyId"})
-        namespace_prefix = config["prefix"]
-        id_parameter = config["id_parameter"]
-
-        # Maak de URL voor de SOAP request
-        url = f"{base_url}/soap/v3/{service_path}"
-
-        # Maak de headers voor de SOAP request
+    def poll_report_status(self, task_id):
+        """Controleert de status van een background rapportverzoek en geeft resultaat terug als 'Success'."""
+        soap_action = f"{self.namespace}/Reports_BackgroundTask_Result"
         headers = {
             "Content-Type": "text/xml; charset=utf-8",
             "SOAPAction": soap_action
         }
 
-        # Bouw de body voor de SOAP request
-        body = f"""<?xml version="1.0" encoding="utf-8"?>
-        <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                        xmlns:soap12="http://www.w3.org/2003/05/soap-envelope"
-                        xmlns:{namespace_prefix}="{base_url}/soap/v3/{endpoint}">
-        <soap12:Header>
-            <{namespace_prefix}:AuthHeaderWithDomain>
-            <{namespace_prefix}:Username>{username}</{namespace_prefix}:Username>
-            <{namespace_prefix}:Token>{token}</{namespace_prefix}:Token>
-            <{namespace_prefix}:Domain>{domain}</{namespace_prefix}:Domain>
-            </{namespace_prefix}:AuthHeaderWithDomain>
-        </soap12:Header>
-        <soap12:Body>
-            <{namespace_prefix}:{body_action}>
-        """
-        
-        # Voeg de CompanyID toe als deze nodig is
-        if id_necessary:
-            if company_id is None:
-                logging.error(f"CompanyID is vereist voor service {service_name} maar is niet opgegeven")
-                return None
-            if id_parameter is None:
-                logging.error(f"ID parameter is niet gedefinieerd voor service {service_name}")
-                return None
-            body += f"<{namespace_prefix}:{id_parameter}>{company_id}</{namespace_prefix}:{id_parameter}>"
-        
-        # Voeg de WerknemerID toe als deze nodig is
-        if werknemer_id_necessary:
-            if werknemer_id is None:
-                logging.error(f"WerknemerID is vereist voor service {service_name} maar is niet opgegeven")
-                return None
-            body += f"<{namespace_prefix}:EmployeeId>{werknemer_id}</{namespace_prefix}:EmployeeId>"
-        
-        # Voeg de Period toe als deze nodig is
-        if period_necessary:
-            body += f"<{namespace_prefix}:Period>{period}</{namespace_prefix}:Period>"
-        
-        # Voeg de Year toe als deze nodig is
-        if year_necessary:
-            body += f"<{namespace_prefix}:Year>{year}</{namespace_prefix}:Year>"
-        
-        # Sluit de body en envelop
-        body += f"""
-            </{namespace_prefix}:{body_action}>
-        </soap12:Body>
-        </soap12:Envelope>
-        """
+        body_template = Template("""<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rep="{{ namespace }}">
+        <soap:Header>
+            <rep:AuthHeaderWithDomain>
+            <rep:Username>{{ username }}</rep:Username>
+            <rep:Token>{{ token }}</rep:Token>
+            <rep:Domain>{{ domain }}</rep:Domain>
+            </rep:AuthHeaderWithDomain>
+        </soap:Header>
+        <soap:Body>
+            <rep:Reports_BackgroundTask_Result>
+            <rep:TaskId>{{ task_id }}</rep:TaskId>
+            </rep:Reports_BackgroundTask_Result>
+        </soap:Body>
+        </soap:Envelope>
+        """)
 
-        # Verstuur de request naar de API
-        logging.info(f"SOAP request versturen voor {service_name}")
-        response = requests.post(url, data=body, headers=headers)
+        body = body_template.render(
+            username=self.username,
+            token=self.token,
+            domain=self.domain,
+            task_id=task_id,
+            namespace=self.namespace
+        )
 
-        # Verwerk de response
+        url = f"{self.base_url}/soap/v3/{self.service_path}"
+        logging.info(f"Verstuur status-polling request naar {url}")
+
+        response = requests.post(url, data=body.encode("utf-8"), headers=headers)
+
         if response.status_code == 200:
-            # Print XML response
-            dom = xml.dom.minidom.parseString(response.text)
-            pretty_xml_as_string = "\n".join([line for line in dom.toprettyxml().split('\n') if line.strip()])
-            """print(f"Pretty XML: {pretty_xml_as_string}")"""
-            
-            df = self.xml_to_dataframe(response.text, element_name, namespace)
-            return df
+            root = ET.fromstring(response.text)
+            ns = {'rep': self.namespace}
+
+            status_element = root.find(".//rep:Status", ns)
+            content_element = root.find(".//rep:Content", ns)
+
+            if status_element is not None:
+                status = status_element.text.strip()
+                logging.info(f"Status voor task {task_id}: {status}")
+
+                if status == "Success":
+                    if content_element is not None and content_element.text:
+                        return {
+                            "status": "Success",
+                            "content": content_element.text.strip()
+                        }
+                    else:
+                        logging.info("Status is 'Success' maar er is geen content.")
+                        return {"status": "Success", "content": None}
+                return {"status": status, "content": None}
+            else:
+                logging.error("Kon status niet vinden in de response.")
+                return None
         else:
-            logging.error(f"Fout bij het versturen van de SOAP request voor {service_name}: {response.status_code}: {response.text}")
+            logging.error(f"Fout bij polling request: {response.status_code}\n{response.text}")
             return None
-    
-    def execute_soap_request(self, service_name, company_id=None, period=None, year=None, werknemer_id=None):
-        """Voert de SOAP request uit voor de opgegeven service."""
-        service_params = self.get_soap_parameters(service_name)
-        if service_params:
-            return self.soap_request(
-                service_name,
-                service_params["domain"],
-                service_params["username"],
-                service_params["token"],
-                service_params["soap_action"],
-                service_params["endpoint"],
-                service_params["service_path"],
-                service_params["body_action"],
-                service_params["element_name"],
-                service_params["namespace"],
-                service_params["id_necessary"],
-                company_id,
-                service_params["period_necessary"],
-                period,
-                service_params["year_necessary"],
-                year,
-                service_params["werknemer_id_necessary"],
-                werknemer_id,
-                service_params["base_url"],
-                service_params["sandbox"],
-            )
+        
+    @staticmethod
+    def is_hex(s):
+        try:
+            int(s[:8], 16)
+            return True
+        except ValueError:
+            return False
+
+    def parse_company_employee_wage_component_report(self, xml_string):
+        """
+        Zet een NMBRS 'ReportCompanyEmployeeWageComponent' XML-string om in een pandas DataFrame.
+
+        Args:
+            xml_string (str): De XML-string van het rapport.
+
+        Returns:
+            pd.DataFrame: Een DataFrame met de geëxtraheerde gegevens.
+        """
+        try:
+            # Verwijder de BOM (Byte Order Mark) als die aanwezig is, bv. bij utf-16
+            if xml_string.startswith('\\ufeff'):
+                xml_string = xml_string[1:]
+
+            root = ET.fromstring(xml_string)
+            
+            data = []
+
+            # Algemene bedrijfsinfo
+            company_id = root.findtext('CompanyID')
+            company_name = root.findtext('CompanyName')
+            company_number = root.findtext('CompanyNumber')
+            period_type = root.findtext('PeriodType')
+
+            employees_list_node = root.find('EmployeesList')
+            if employees_list_node is None:
+                logging.info("Geen 'EmployeesList' gevonden in de XML-rapportage.")
+                return pd.DataFrame()
+
+            for employee_node in employees_list_node.findall('Employees'):
+                employee_id = employee_node.findtext('EmployeeID')
+                employee_name = employee_node.findtext('EmployeeName')
+                employee_number = employee_node.findtext('EmployeeNumber')
+
+                wage_components_list_node = employee_node.find('WageComponentsList')
+                if wage_components_list_node is None:
+                    logging.debug(f"Werknemer {employee_name} ({employee_id}) heeft geen 'WageComponentsList'.")
+                    continue
+
+                for wage_component_node in wage_components_list_node.findall('WageComponents'):
+                    component_guid = wage_component_node.findtext('ComponentGuid')
+                    component_number = wage_component_node.findtext('ComponentNumber')
+                    component_name = wage_component_node.findtext('ComponentName')
+                    cumulative_value_component = wage_component_node.findtext('CumulativeValue')
+
+                    values_node = wage_component_node.find('Values')
+                    if values_node is None:
+                        # Als er geen 'Values' zijn, maar wel een 'WageComponent', kunnen we besluiten
+                        # om een record te maken met None voor de Value-specifieke velden,
+                        # of deze wage component overslaan voor de "platte" tabel.
+                        # Hier kiezen we ervoor om alleen records te maken als er <Value> elementen zijn.
+                        logging.debug(f"WageComponent {component_name} ({component_number}) voor werknemer {employee_name} ({employee_id}) "
+                                      f"heeft geen 'Values' node. Cumulatieve waarde: {cumulative_value_component}")
+                        continue 
+
+                    for value_node in values_node.findall('Value'):
+                        component_value = value_node.findtext('ComponentValue')
+                        period = value_node.findtext('Period')
+                        run = value_node.findtext('Run')
+
+                        record = {
+                            'CompanyID': company_id,
+                            'CompanyName': company_name,
+                            'CompanyNumber': company_number,
+                            'PeriodType': period_type,
+                            'EmployeeID': employee_id,
+                            'EmployeeName': employee_name,
+                            'EmployeeNumber': employee_number,
+                            'ComponentGuid': component_guid,
+                            'ComponentNumber': component_number,
+                            'ComponentName': component_name,
+                            'CumulativeValue_Component': cumulative_value_component,
+                            'ComponentValue': component_value,
+                            'Period': period,
+                            'Run': run
+                        }
+                        data.append(record)
+            
+            df = pd.DataFrame(data)
+            return df
+
+        except ET.ParseError as e:
+            logging.error(f"Fout bij het parsen van XML voor ReportCompanyEmployeeWageComponent: {e}")
+            # Log een deel van de problematische XML
+            start_index = max(0, e.offset - 30)
+            end_index = min(len(xml_string), e.offset + 30)
+            logging.error(f"Problematisch XML (rond positie {e.offset}, lijn {e.lineno}): ...{xml_string[start_index:end_index]}...")
+            return pd.DataFrame() 
+        except Exception as e:
+            logging.error(f"Onverwachte fout bij het converteren van ReportCompanyEmployeeWageComponent XML naar DataFrame: {e}")
+            return pd.DataFrame()
+
+    def execute_report_creation(self, company_id, year, max_attempts = 10, poll_interval = 5):
+        """
+        Vraagt een rapport aan, pollt voor de status, en parseert het resultaat naar een DataFrame.
+
+        Args:
+            company_id (str): Het ID van het bedrijf.
+            year (str): Het jaar waarvoor het rapport wordt aangevraagd.
+            max_attempts (int): Maximaal aantal pogingen om de status te pollen.
+            poll_interval (int): Aantal seconden tussen poll pogingen.
+
+        Returns:
+            pd.DataFrame: Een DataFrame met de rapportgegevens, of een leeg DataFrame bij een fout.
+        """
+        task_guid = self.report_request(company_id=company_id, year=year)
+
+        if not task_guid:
+            logging.error(f"Kon geen task_guid ontvangen voor company {company_id}, year {year}. Stoppen.")
+            return pd.DataFrame()
+
+        logging.info(f"Rapport succesvol aangevraagd met GUID: {task_guid} voor company {company_id}, year {year}")
+
+        for i in range(max_attempts):
+            result = self.poll_report_status(task_guid)
+            if result:
+                status = result.get("status")
+                content = result.get("content")
+                logging.info(f"Poging {i+1}/{max_attempts}: Status voor task {task_guid} = {status}")
+
+                if status == "Success":
+                    if content:
+                        df_report = self.parse_company_employee_wage_component_report(content)
+                        if not df_report.empty:
+                            df_report['Jaar'] = year
+                            logging.info(f"Rapport succesvol omgezet naar DataFrame. Shape: {df_report.shape}. 'Jaar' kolom toegevoegd.")
+                        else:
+                            logging.info("Rapport succesvol opgehaald, maar het parsen resulteerde in een leeg DataFrame.")
+                        return df_report
+                    else:
+                        logging.info("Rapportstatus is 'Success', maar er is geen content beschikbaar.")
+                        return pd.DataFrame()
+                elif status in ["Executing", "Enqueued"]:
+                    if i < max_attempts - 1: # Niet slapen na de laatste poging
+                        logging.info(f"Opnieuw proberen over {poll_interval} seconden...")
+                        time.sleep(poll_interval)
+                    else:
+                        logging.info(f"Maximale aantal pogingen ({max_attempts}) bereikt, rapport nog steeds niet 'Success'. Status: {status}")
+                        return pd.DataFrame()
+                else: # Failed, Cancelled, etc.
+                    logging.error(f"Rapportgeneratie gestopt of mislukt. Status: {status}")
+                    return pd.DataFrame()
+            else:
+                logging.error(f"Fout bij ophalen status voor task {task_guid} bij poging {i+1}.")
+                if i < max_attempts - 1:
+                     time.sleep(poll_interval)
+                else:
+                    logging.error(f"Maximale aantal pogingen ({max_attempts}) bereikt voor het ophalen van de status.")
+                    return pd.DataFrame()
+        
+        logging.error(f"Rapportverwerking niet succesvol afgerond na {max_attempts} pogingen voor task {task_guid}.")
+        return pd.DataFrame()
 
     def xml_to_dataframe(self, xml_string, element_name, namespace):
         """
         Zet een SOAP XML response om in een pandas DataFrame.
         
-        Parameters:
-            - xml_string (str): De volledige XML-string van de SOAP-response.
-            - element_name (str): Het element waarvan je de gegevens wilt extraheren (bijv. 'EmployeeFunctionItem_V2').
-            - namespace (str): De namespace die moet worden gebruikt bij het zoeken naar de elementen.
+        Args:
+            xml_string (str): De volledige XML-string van de SOAP-response.
+            element_name (str): Het element waarvan je de gegevens wilt extraheren.
+            namespace (str): De namespace die moet worden gebruikt bij het zoeken naar de elementen.
         
         Returns:
-            - pandas DataFrame: Een DataFrame met de geëxtraheerde gegevens.
+            pandas DataFrame: Een DataFrame met de geëxtraheerde gegevens.
         """
         try:
-            # Parse de XML string
+            # Verwijder BOM indien aanwezig
+            if xml_string.startswith('\ufeff'):
+                xml_string = xml_string[1:]
+            if xml_string.startswith('ï»¿'): # Voor UTF-8 BOM
+                 xml_string = xml_string[3:]
+
             root = ET.fromstring(xml_string)
             
-            # Verkrijg de namespace van de XML
-            namespaces = {'ns': namespace}  # Pas deze aan afhankelijk van de service
+            namespaces = {'ns': namespace}
             
-            # Zoek het hoofdelement waar we de gegevens willen extraheren
             items = root.findall(f".//ns:{element_name}", namespaces)
             
-            # Controleer of er items zijn om te verwerken
             if not items:
-                logging.info(f"Geen items gevonden voor element '{element_name}' met namespace '{namespace}'")
-                return pd.DataFrame()  # Return een lege DataFrame
+                # Probeer zonder namespace prefix als het een default namespace is in het element zelf
+                # Moet de namespace in de findall query gebruiken, niet de alias 'ns'
+                items_default_ns = root.findall(f".//{{{namespace}}}{element_name}")
+                if items_default_ns:
+                    items = items_default_ns
+                else:
+                    logging.info(f"Geen items gevonden voor element '{element_name}' met namespace '{namespace}' (noch met ns: prefix, noch als default namespace). Probeer fallback.")
+                    # Probeer het response body element zelf te vinden als fallback (voor simpele list responses)
+                    # Aangepaste SOAP namespace voor envelope
+                    soap_env_ns = {'soap': 'http://www.w3.org/2003/05/soap-envelope'}
+                    if not root.tag.startswith('{http://www.w3.org/2003/05/soap-envelope}'): # Check if root is not already the envelope
+                        # If root is not envelope, try to find it. Standard is 'soap:Envelope'
+                        # This case should ideally not happen if ET.fromstring(xml_string) works as expected on full response
+                        pass # Assuming root IS the envelope or a direct child for now
+
+                    body_node = root.find("soap:Body", soap_env_ns)
+                    if body_node is not None:
+                        # Zoek naar het eerste kind van Body, dat meestal het 'Result' element is
+                        result_container = body_nodefind("*[1]") # Get the first child element regardless of its name
+                        if result_container is not None:
+                            # Zoek nu naar 'element_name' binnen dit result_container
+                            items = result_container.findall(f"{{{namespace}}}{element_name}")
+                            if not items:
+                                items = result_container.findall(f"ns:{element_name}", namespaces) # Probeer met ns prefix ook nog
+                            if not items:
+                                logging.info(f"Ook geen items gevonden binnen {result_container.tag}.")
+                        else:
+                            logging.info("Body node gevonden, maar geen result_container (eerste kind-element).")
+                    else:
+                        logging.info("SOAP Body node niet gevonden met soap:Body.")
+
+            if not items:
+                 logging.info(f"Uiteindelijk geen items gevonden voor '{element_name}' in namespace '{namespace}'. XML-structuur kan afwijken.")
+                 return pd.DataFrame()
             
-            # Lijst om de gegevens in op te slaan
             data = []
             
-            # Voor elk item (bijvoorbeeld EmployeeFunctionItem_V2), haal de relevante gegevens op
             for item in items:
                 entry = {}
                 for child in item:
-                    tag_name = child.tag.split('}')[1] if '}' in child.tag else child.tag
+                    tag_name = child.tag.split('}')[-1] # Haal de lokale naam op
                     entry[tag_name] = child.text
-                
-                # Controleer of er geneste EmployeeFunctions zijn en verwerk deze
-                employee_functions = item.findall(".//ns:EmployeeFunctions/ns:EmployeeFunction", namespaces)
-                if employee_functions:
-                    functions_data = []
-                    for emp_func in employee_functions:
-                        # Controleer of de EmployeeFunction leeg is (met xsi:nil="true")
-                        function_data = {}
-                        for func_child in emp_func:
-                            # Verwerk de gegevens, maar sla lege elementen over
-                            tag_name = func_child.tag.split('}')[1] if '}' in func_child.tag else func_child.tag
-                            function_data[tag_name] = func_child.text if func_child.text else None
-                        functions_data.append(function_data)
-                    entry["EmployeeFunctions"] = functions_data
-                
-                # Voeg de entry toe aan de lijst van data
                 data.append(entry)
             
-            # Zet de gegevens om in een pandas DataFrame
             df = pd.DataFrame(data)
             
-            # Ontvouwt geneste kolommen
+            # Basic unnesting for simple list of dicts (might need more robust unnesting later)
             for column in df.columns:
-                if isinstance(df[column].iloc[0], list) and isinstance(df[column].iloc[0][0], dict):
-                    df = df.explode(column, ignore_index=True)
-                    df = df.join(pd.json_normalize(df[column]).add_prefix(f'{column}_'))
-                    df = df.drop(columns=[column])
-            
+                first_valid_entry = next((x for x in df[column] if x is not None), None)
+                if isinstance(first_valid_entry, list) and first_valid_entry and isinstance(first_valid_entry[0], dict):
+                    try:
+                        original_index = df.index # Bewaar de originele index
+                        df = df.explode(column, ignore_index=False) # Behoud index tijdens explode
+                        
+                        # Filter out rows that became None/NaN after explode if original was empty list or list of non-dicts
+                        # Then normalize only if there's something to normalize
+                        valid_series = df[column].dropna()
+                        if not valid_series.empty:
+                             normalized_col = pd.json_normalize(valid_series.tolist()).add_prefix(f'{column}_')
+                             normalized_col.index = valid_series.index # Zorg voor dezelfde index als valid_series
+                             df = df.join(normalized_col, how='left') # Gebruik left join om alle rijen van df te behouden
+                        # Drop de originele kolom alleen als er genormaliseerd is of als deze leeg was na explode
+                        # Dit voorkomt het verwijderen van de kolom als normalisatie faalt of niet nodig is
+                        if not valid_series.empty or df[column].isnull().all():
+                             df = df.drop(columns=[column])
+                        df = df.reindex(original_index) # Herstel de originele indexvolgorde indien nodig
+
+                    except Exception as e:
+                        logging.info(f"Kon kolom {column} niet volledig unnesten/normaliseren: {e}")
             return df
             
         except ET.ParseError as e:
-            logging.error(f"Fout bij het parsen van XML: {e}")
+            logging.error(f"Fout bij het parsen van XML: {e}. XML-string: '{xml_string[:200]}...'" )
             return pd.DataFrame()
         except Exception as e:
             logging.error(f"Onverwachte fout bij het converteren van XML naar DataFrame: {e}")
+            return pd.DataFrame()
+
+    COMPANY_LIST_SOAP_TEMPLATE = Template('''<?xml version="1.0" encoding="utf-8"?>
+    <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+      <soap12:Header>
+        <AuthHeaderWithDomain xmlns="{{ namespace }}">
+          <Username>{{ username }}</Username>
+          <Token>{{ token }}</Token>
+          <Domain>{{ domain }}</Domain>
+        </AuthHeaderWithDomain>
+      </soap12:Header>
+      <soap12:Body>
+        <List_GetAll xmlns="{{ namespace }}" />
+      </soap12:Body>
+    </soap12:Envelope>''')
+
+    def get_company_list(self):
+        """
+        Haalt een lijst van alle bedrijven op via de NMBRS CompanyService.
+
+        Returns:
+            pd.DataFrame: Een DataFrame met bedrijfsgegevens, of een leeg DataFrame bij een fout.
+        """
+        service_namespace = "https://api.nmbrs.nl/soap/v3/CompanyService"
+        service_path = "CompanyService.asmx"
+        # De SOAPAction is de namespace + de operatienaam
+        soap_action = f"{service_namespace}/List_GetAll"
+        element_name = "Company" # Het te extraheren element in de response
+
+        url = f"{self.base_url}/soap/v3/{service_path}"
+        headers = {
+            "Content-Type": "application/soap+xml; charset=utf-8", 
+            "SOAPAction": soap_action 
+        }
+
+        body = self.COMPANY_LIST_SOAP_TEMPLATE.render(
+            username=self.username,
+            token=self.token,
+            domain=self.domain,
+            namespace=service_namespace
+        )
+        
+        logging.info(f"Verstuur SOAP request voor Company List_GetAll naar {url}")
+        try:
+            response = requests.post(url, data=body.encode("utf-8"), headers=headers, timeout=30)
+            response.raise_for_status() 
+
+            logging.info(f"Response status: {response.status_code} voor Company List_GetAll")
+            if response.status_code == 200 and response.content:
+                try:
+                    dom = xml.dom.minidom.parseString(response.text)
+                    pretty_xml = dom.toprettyxml()
+                    logging.debug(f"Company List_GetAll Response XML (eerste 1000 karakters):\n{pretty_xml[:1000]}")
+                except Exception as e:
+                    logging.info(f"Kon Company List_GetAll response XML niet pretty printen: {e}. Ruwe tekst (eerste 500 kar.): {response.text[:500]}")
+                
+                df = self.xml_to_dataframe(response.text, element_name, service_namespace)
+                if df.empty:
+                    logging.info("Company List_GetAll request succesvol, maar resulterende DataFrame is leeg. Controleer XML structuur en parser.")
+                else:
+                    logging.info(f"Company List_GetAll succesvol omgezet naar DataFrame. Shape: {df.shape}")
+                return df
+            else:
+                # Dit blok wordt mogelijk niet bereikt als raise_for_status() een error werpt voor non-200 codes.
+                logging.error(f"Fout bij Company List_GetAll SOAP request: Status {response.status_code}, Content (eerste 500 kar.): {response.text[:500]}")
+                return pd.DataFrame()
+
+        except requests.exceptions.HTTPError as http_err:
+            # response.text kan hier nuttig zijn voor debugging
+            error_content = ""
+            if http_err.response is not None:
+                error_content = http_err.response.text[:500]
+            logging.error(f"HTTP error occurred: {http_err} - {error_content}")
+            return pd.DataFrame()
+        except requests.exceptions.RequestException as req_err:
+            logging.error(f"Request error occurred: {req_err}")
+            return pd.DataFrame()
+        except Exception as e:
+            logging.error(f"Een onverwachte fout trad op tijdens get_company_list: {e}")
             return pd.DataFrame()

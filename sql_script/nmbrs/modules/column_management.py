@@ -10,89 +10,27 @@ class ColumnMappingConfig:
 
     def __post_init__(self):
         self.mappings = {
-            "Debiteuren": {
-                'debtorId': 'DebtorID',
-                'number': 'Debiteur_Nummer',
-                'name': 'Debiteurnaam',
-            },
             "Bedrijven": {
-                'companyId': 'CompanyID',
-                'number': 'Bedrijfs_Nummer',
-                'name': 'Bedrijfsnaam',
-                'debtorId': 'DebtorID',
+                'ID': 'BedrijfID',
+                'Number': 'Bedrijfsnummer',
+                'Name': 'Bedrijfsnaam',
             },
-            "FTE": {
-                'employeeId': 'WerknemerID',
-                'CompanyID': 'CompanyID',
-                'schedule_scheduleId': 'SchemaID',
-                'schedule_startDate': 'Start_Datum',
-                'schedule_parttimePercentage': 'FTE_Percentage',
-                'schedule_hoursPerWeek': 'Uren_Per_Week',
-                'schedule_daysPerWeek': 'Dagen_Per_Week',
-                'schedule_createdAt': 'Aanmaakdatum',
-                'schedule_week1.hoursMonday': 'Uren_Maandag_Week1',
-                'schedule_week1.hoursTuesday': 'Uren_Dinsdag_Week1',
-                'schedule_week1.hoursWednesday': 'Uren_Woensdag_Week1',
-                'schedule_week1.hoursThursday': 'Uren_Donderdag_Week1',
-                'schedule_week1.hoursFriday': 'Uren_Vrijdag_Week1',
-                'schedule_week1.hoursSaturday': 'Uren_Zaterdag_Week1',
-                'schedule_week1.hoursSunday': 'Uren_Zondag_Week1',
-                'schedule_week2.hoursMonday': 'Uren_Maandag_Week2',
-                'schedule_week2.hoursTuesday': 'Uren_Dinsdag_Week2',
-                'schedule_week2.hoursWednesday': 'Uren_Woensdag_Week2',
-                'schedule_week2.hoursThursday': 'Uren_Donderdag_Week2',
-                'schedule_week2.hoursFriday': 'Uren_Vrijdag_Week2',
-                'schedule_week2.hoursSaturday': 'Uren_Zaterdag_Week2',
-                'schedule_week2.hoursSunday': 'Uren_Zondag_Week2',
-            },
-            "Contracten": {
-                'employeeId': 'WerknemerID',
-                'CompanyID': 'CompanyID',
-                'employment_employmentId': 'ContractID',
-                'employment_startDate': 'Start_Datum',
-                'employment_endDate': 'Eind_Datum',
-                'employment_seniorityDate': 'InDienstNemen_Datum',
-                'employment_endContractReason.code': 'Reden_Code',
-                'employment_endContractReason.reason': 'Reden_Omschrijving',
-                'employment_changedDate': 'Wijzigings_Datum',
-            },
-            "Uurcodes": {
-                'Code': 'Uurcode',
-                'Description': 'Omschrijving',
-            },
-            "Uren_Vast": {
-                'Id': 'UurID',
-                'Code': 'Uurcode',
-                'Value': 'Aantal_Uren',
-                'WerknemerID': 'WerknemerID',
-            },
-            "Uren_Variabel": {
-                'Id': 'UurID',
-                'Code': 'Uurcode',
-                'Value': 'Aantal_Uren',
-                'WerknemerID': 'WerknemerID',
-            },
-            "Uren_Schemas": {
-                'HoursMonday': 'Uren_Maandag',
-                'HoursTuesday': 'Uren_Dinsdag',
-                'HoursWednesday': 'Uren_Woensdag',
-                'HoursThursday': 'Uren_Donderdag',
-                'HoursFriday': 'Uren_Vrijdag',
-                'HoursSaturday': 'Uren_Zaterdag',
-                'HoursSunday': 'Uren_Zondag',
-                'HoursMonday2': 'Uren_Maandag2',
-                'HoursTuesday2': 'Uren_Dinsdag2',
-                'HoursWednesday2': 'Uren_Woensdag2',
-                'HoursThursday2': 'Uren_Donderdag2',
-                'HoursFriday2': 'Uren_Vrijdag2',
-                'HoursSaturday2': 'Uren_Zaterdag2',
-                'HoursSunday2': 'Uren_Zondag2',
-                'ParttimePercentage': 'FTE_Percentage',
-                'StartDate': 'Start_Datum',
-                'WerknemerID': 'WerknemerID',
+            "Looncomponenten": {
+                'CompanyID': 'BedrijfID',
+                'CompanyNumber': 'Bedrijfsnummer',
+                'CompanyName': 'Bedrijfsnaam',
+                'EmployeeID': 'WerknemerID',
+                'EmployeeNumber': 'Werknemer_nummer',
+                'ComponentGuid': 'LooncomponentID',
+                'ComponentNumber': 'Looncomponent_nummer',
+                'ComponentName': 'Looncomponentnaam',
+                'ComponentValue': 'Looncomponentwaarde',
+                'Period': 'Periode',
+                'Jaar': 'Jaar',
+                'Run': 'Run'
             }
         }
-        # Voeg alle bestaande mappings toe aan self.mappings
+        
     def get_mapping(self, table_name):
         """Haal de kolom mapping op voor een specifieke tabel.
         

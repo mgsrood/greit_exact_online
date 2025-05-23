@@ -25,50 +25,15 @@ class TableConfigManager:
 
     def __post_init__(self):
         self.configs = {
-            "Debiteuren": TableConfig(
-                mode="truncate",
-                unique_columns=["DebtorID"],
-                filter_column=""
-            ),
             "Bedrijven": TableConfig(
                 mode="truncate",
-                unique_columns=["CompanyID"],
+                unique_columns=["BedrijfID"],
                 filter_column=""
             ),
-            "FTE": TableConfig(
+            "Looncomponenten": TableConfig(
                 mode="truncate",
-                unique_columns=["SchemaID"],
-                filter_column="CompanyID"
-            ),
-            "Contracten": TableConfig(
-                mode="truncate",
-                unique_columns=["ContractID"],
-                filter_column="CompanyID"
-            ),
-            "Werknemers": TableConfig(
-                mode="truncate",
-                unique_columns=["WerknemerID"],
-                filter_column="CompanyID"
-            ),
-            "Uurcodes": TableConfig(
-                mode="truncate",
-                unique_columns=["Uurcode"],
-                filter_column="CompanyID"
-            ),
-            "Uren_Vast": TableConfig(
-                mode="truncate",
-                unique_columns=["UurID"],
-                filter_column="CompanyID"
-            ),
-            "Uren_Variabel": TableConfig(
-                mode="truncate",
-                unique_columns=["UurID"],
-                filter_column="CompanyID"
-            ),
-            "Uren_Schemas": TableConfig(
-                mode="truncate",
-                unique_columns=["WerknemerID"],
-                filter_column="CompanyID"
+                unique_columns=["BedrijfID", "WerknemerID", "LooncomponentID"],
+                filter_column=["BedrijfID", "Jaar"]
             )
         }
 
@@ -83,18 +48,20 @@ def create_engine_with_auth(connection_string, auth_method="SQL", token_struct=N
     Returns:
         Een SQLAlchemy engine met de juiste authenticatie configuratie
     """
+
+    engine_url = f"mssql+pyodbc:///?odbc_connect={connection_string}"
     if auth_method.upper() == "MEI":
         if not token_struct:
             raise ValueError("Token is vereist voor MEI authenticatie")
         SQL_COPT_SS_ACCESS_TOKEN = 1256
         connect_args = {'attrs_before': {SQL_COPT_SS_ACCESS_TOKEN: token_struct}}
-        return create_engine(f"mssql+pyodbc:///?odbc_connect={connection_string}", connect_args=connect_args)
+        return create_engine(engine_url, connect_args=connect_args)
     elif auth_method.upper() == "SQL":
-        return create_engine(f"mssql+pyodbc:///?odbc_connect={connection_string}")
+        return create_engine(engine_url)
     else:
         raise ValueError(f"Ongeldige authenticatie methode: {auth_method}. Gebruik 'SQL' of 'MEI'")
 
-def clear_data(engine, table, config, company_id=None, werknemer_id=None, laatste_sync=None):
+def clear_data(engine, table, config, company_id=None, jaar=None, laatste_sync=None):
     """Verwijder data uit een tabel op basis van de configuratie."""
     try:
         with engine.connect() as connection:
@@ -107,50 +74,58 @@ def clear_data(engine, table, config, company_id=None, werknemer_id=None, laatst
                     verschil_in_jaren = verschil_in_dagen / 365.0
                     
                     if verschil_in_jaren > 1.2:
-                        logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar volledige truncate voor {table}")
-                        if company_id is not None and werknemer_id is not None:
-                            result = connection.execute(
-                                text(f"DELETE FROM {table} WHERE CompanyID = :company_id AND WerknemerID = :werknemer_id"),
-                                {"company_id": company_id, "werknemer_id": werknemer_id}
-                            )
-                            rows_deleted = result.rowcount
-                            logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} en werknemer {werknemer_id} uit {table}")
-                        elif company_id is not None:
-                            result = connection.execute(
-                                text(f"DELETE FROM {table} WHERE CompanyID = :company_id"),
-                                {"company_id": company_id}
-                            )
-                            rows_deleted = result.rowcount
-                            logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} uit {table}")
+                        logging.info(f"Laatste sync is meer dan een jaar geleden, overschakelen naar selectieve delete voor {table} indien filters aanwezig, anders truncate")
+                        params_sync = {}
+                        where_clauses_sync = []
+                        if company_id is not None:
+                            where_clauses_sync.append("BedrijfID = :company_id")
+                            params_sync["company_id"] = company_id
+                        if jaar is not None and isinstance(config.filter_column, list) and "Jaar" in config.filter_column:
+                             where_clauses_sync.append("Jaar = :jaar")
+                             params_sync["jaar"] = jaar
+
+                        if where_clauses_sync:
+                            query_sync = f"DELETE FROM {table} WHERE {' AND '.join(where_clauses_sync)}"
+                            result_sync = connection.execute(text(query_sync), params_sync)
+                            rows_deleted = result_sync.rowcount
+                            logging.info(f"Verwijderd {rows_deleted} rijen uit {table} (लाTSTE SYNC > 1.2 JAAR) gebaseerd op filter: {params_sync}")
                         else:
                             connection.execute(text(f"TRUNCATE TABLE {table}"))
-                            logging.info(f"Tabel {table} succesvol getruncate")
+                            logging.info(f"Tabel {table} succesvol getruncate (लाTSTE SYNC > 1.2 JAAR, geen specifieke filters). ")
+                            rows_deleted = 0 # Assuming truncate doesn't return rowcount consistently
+                        
                         connection.commit()
-                        return rows_deleted if company_id is not None else 0
+                        return rows_deleted
                 except (ValueError, TypeError) as e:
                     logging.info(f"Kon laatste_sync niet verwerken: {e}. Gebruik standaard operatie.")
             
-            # Standaard operatie op basis van mode en company_id/werknemer_id
+            # Standaard operatie op basis van mode
             if config.mode == 'truncate':
-                if company_id is not None and werknemer_id is not None:
-                    result = connection.execute(
-                        text(f"DELETE FROM {table} WHERE CompanyID = :company_id AND WerknemerID = :werknemer_id"),
-                        {"company_id": company_id, "werknemer_id": werknemer_id}
-                    )
+                params = {}
+                where_clauses = []
+
+                if company_id is not None:
+                    if isinstance(config.filter_column, list) and "BedrijfID" in config.filter_column:
+                        where_clauses.append("BedrijfID = :company_id")
+                        params["company_id"] = company_id
+                    elif config.filter_column == "BedrijfID" or (not isinstance(config.filter_column, list) and not config.filter_column):
+                        where_clauses.append("BedrijfID = :company_id")
+                        params["company_id"] = company_id
+                
+                if jaar is not None and isinstance(config.filter_column, list) and "Jaar" in config.filter_column:
+                    where_clauses.append("Jaar = :jaar")
+                    params["jaar"] = jaar
+
+                if where_clauses:
+                    query = f"DELETE FROM {table} WHERE {' AND '.join(where_clauses)}"
+                    result = connection.execute(text(query), params)
                     rows_deleted = result.rowcount
-                    logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} en werknemer {werknemer_id} uit {table}")
-                elif company_id is not None:
-                    result = connection.execute(
-                        text(f"DELETE FROM {table} WHERE CompanyID = :company_id"),
-                        {"company_id": company_id}
-                    )
-                    rows_deleted = result.rowcount
-                    logging.info(f"Verwijderd {rows_deleted} rijen voor bedrijf {company_id} uit {table}")
+                    logging.info(f"Verwijderd {rows_deleted} rijen uit {table} gebaseerd op filter: {params}")
                 else:
                     connection.execute(text(f"TRUNCATE TABLE {table}"))
-                    logging.info(f"Tabel {table} succesvol getruncate")
-                    rows_deleted = 0
-                
+                    logging.info(f"Tabel {table} succesvol getruncate (geen specifieke filters toegepast).")
+                    rows_deleted = 0 
+
                 connection.commit()
                 return rows_deleted
             else:
@@ -158,6 +133,9 @@ def clear_data(engine, table, config, company_id=None, werknemer_id=None, laatst
                 return 0
     except Exception as e:
         logging.error(f"Fout bij het verwijderen van data uit {table}: {str(e)}")
+        # Log de volledige stack trace voor meer details
+        import traceback
+        logging.error(f"Stack trace: {traceback.format_exc()}")
         raise
 
 def write_data(engine, df, table, config, laatste_sync=None):
@@ -247,8 +225,9 @@ def write_data(engine, df, table, config, laatste_sync=None):
         logging.error(f"Stack trace: {traceback.format_exc()}")
         raise
 
-def apply_table_clearing(connection_string, table, company_id=None, werknemer_id=None, laatste_sync=None, config_manager=None):
+def apply_table_clearing(connection_string, table, company_id=None, jaar=None, laatste_sync=None, config_manager=None):
     """Pas tabel clearing toe met logging."""
+
     try:
         if config_manager is None:
             config_manager = TableConfigManager()
@@ -279,7 +258,7 @@ def apply_table_clearing(connection_string, table, company_id=None, werknemer_id
             token_struct
         )
         
-        rows_deleted = clear_data(engine, table, config, company_id, werknemer_id, laatste_sync)
+        rows_deleted = clear_data(engine, table, config, company_id, jaar, laatste_sync)
         return rows_deleted > 0
     except Exception as e:
         logging.error(f"Fout bij het verwijderen van rijen of leegmaken van de tabel: {str(e)}")
