@@ -34,6 +34,7 @@ class DatabaseLogHandler(logging.Handler):
             log_message = self.format(record)
             log_message = log_message.split('-')[-1].strip()
             created_at = datetime.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S')
+            log_level = record.levelname
             
             # Gebruik de connect_to_database functie met de juiste authenticatie
             with connect_to_database(
@@ -46,10 +47,10 @@ class DatabaseLogHandler(logging.Handler):
                 with conn.cursor() as cursor:
                     cursor.execute(
                         """INSERT INTO Logging 
-                           (Klantnaam, Actie, Datumtijd, Administratiecode, Tabel, Script, ScriptID) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                           (Klantnaam, Actie, Datumtijd, Administratiecode, Tabel, Script, ScriptID, Niveau) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                         (self.customer, log_message, created_at, 
-                         self.administratiecode, self.tabel, self.script, self.script_id)
+                         self.administratiecode, self.tabel, self.script, self.script_id, log_level)
                     )
                     conn.commit()
         except Exception as e:
