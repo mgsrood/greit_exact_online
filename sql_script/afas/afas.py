@@ -33,19 +33,19 @@ def afas(connection_string, config_manager, klant):
 
         else:
             errors_occurred = True
-            return False
+            return 'false'
 
         # Ophalen tabel configuratie gegevens
         table_config_dict = config_manager.get_table_configurations(connection_string)
         if table_config_dict is None:
             errors_occurred = True
-            return False
+            return 'false'
 
         # Ophalen omgevings configuratie gegevens
         environment_dict = config_manager.create_environment_dict(connection_string)
         if environment_dict is None:
             errors_occurred = True
-            return False
+            return 'false'
 
         # Endpoint loop
         for klant, (omgeving_id, api_string, token, status, volledige_sync) in environment_dict.items():
@@ -98,7 +98,7 @@ def afas(connection_string, config_manager, klant):
                     df_converted = apply_type_conversion(df, table)
                     if df_converted is None:
                         continue
-
+                    
                     # Rijen verwijderen
                     apply_table_clearing(connection_string, table, omgeving_id, laatste_sync)
                     

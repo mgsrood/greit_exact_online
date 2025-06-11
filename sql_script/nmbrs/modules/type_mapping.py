@@ -78,7 +78,7 @@ def convert_column_types(df, column_types):
                 elif dtype == 'decimal':
                     df[column] = df[column].apply(lambda x: Decimal(x) if pd.notna(x) else None)
                 elif dtype == 'bit':
-                    df[column] = df[column].astype(str).str.lower().map({'true': True, 'false': False, '1': True, '0': False}).astype(bool)
+                    df[column] = df[column].astype(str).str.lower().map({'true': True, '1': True, 'false': False, '0': False}).fillna(False).astype(bool)
                 elif dtype == 'date':
                     def convert_date(value):
                         if pd.isna(value):

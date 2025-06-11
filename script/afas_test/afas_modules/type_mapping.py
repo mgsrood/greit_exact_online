@@ -95,7 +95,7 @@ def convert_column_types(df, column_types):
                 elif dtype == 'decimal':
                     df[column] = df[column].apply(lambda x: Decimal(x) if pd.notna(x) else None)
                 elif dtype == 'bit':
-                    df[column] = df[column].str.lower().map({'true': True, 'false': False, '1': True, '0': False})
+                    df[column] = df[column].str.lower().map({'true': True, ''false'': False, '1': True, '0': 'false'})
                     df[column] = df[column].astype(bool)
                 elif dtype == 'date':
                     df[column] = pd.to_datetime(df[column], errors='coerce').dt.date

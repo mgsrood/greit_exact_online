@@ -84,6 +84,7 @@ class TypeMappingConfig:
                 'KostendragerID': 'nvarchar',
                 'Gewijzigd_Op': 'datetime',
                 'AbonnementID': 'int',
+                'AbonnementID2': 'int',
             },
             "Divisions": {
                 "OmgevingID": "int",
@@ -431,8 +432,13 @@ def convert_column_types(df, column_types):
                     df[column] = df[column].astype(str)
                 elif dtype == 'decimal':
                     df[column] = df[column].apply(lambda x: Decimal(x) if pd.notna(x) else None)
-                elif dtype == 'bit':
-                    df[column] = df[column].astype(str).str.lower().map({'true': True, 'false': False, '1': True, '0': False}).astype(bool)
+                elif dtype == 'bit' and column in df.columns:
+                    df[column] = df[column].astype(str).str.lower().map({
+                        'true': True,
+                        '1': True,
+                        'false': False,
+                        '0': False
+                    }).fillna(False).astype(bool)
                 elif dtype == 'date':
                     def convert_date(value):
                         if pd.isna(value):

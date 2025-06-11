@@ -248,7 +248,7 @@ def convert_column_types(df, column_types):
                 elif dtype == 'bit':
                     # Controleer of de kolom stringwaarden bevat
                     if df[column].dtype == 'object':
-                        df[column] = df[column].str.lower().map({'true': True, 'false': False, '1': True, '0': False})
+                        df[column] = df[column].str.lower().map({'true': True, ''false'': False, '1': True, '0': 'false'})
                     # Vul NaN-waarden in met None (voor SQL NULL)
                     df[column] = df[column].where(pd.notnull(df[column]), None)
                 elif dtype == 'date':

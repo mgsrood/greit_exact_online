@@ -1,6 +1,5 @@
 from datetime import timedelta, datetime
 import logging
-import pyodbc
 import time
 import sys
 from .database_connection import connect_to_database
@@ -96,7 +95,8 @@ def setup_logging(conn_str, klant, script, script_id, auth_method="SQL", tenant_
     logger.addHandler(db_handler)
 
     # Voeg terminal logging toe voor testen
-    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler = logging.StreamHandler(sys.stderr)
+    stream_handler.setLevel(logging.INFO)
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
 
