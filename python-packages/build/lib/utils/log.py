@@ -1,11 +1,26 @@
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType
 from datetime import timedelta, datetime
 from pyspark.sql import SparkSession
+from zoneinfo import ZoneInfo
 import logging
 import time
 import sys
 
 LOG_TABLE_NAME = "logging"
+
+class TimezoneFormatter(logging.Formatter):
+    """
+    Custom formatter die de logtijd converteert naar een specifieke tijdzone.
+    """
+    def __init__(self, fmt, datefmt=None, tz_name="Europe/Amsterdam"):
+        super().__init__(fmt, datefmt=datefmt)
+        self.tz = ZoneInfo(tz_name)
+
+    def formatTime(self, record, datefmt=None):
+        dt = datetime.fromtimestamp(record.created, tz=self.tz)
+        if datefmt:
+            return dt.strftime(datefmt)
+        return dt.isoformat()
 
 class LakehouseLogHandler(logging.Handler):
     """
@@ -70,7 +85,7 @@ class LakehouseLogHandler(logging.Handler):
         try:
             log_message = self.format(record)
             log_message = log_message.split(' - ')[-1].strip()
-            created_at_dt = datetime.fromtimestamp(record.created)
+            created_at_dt = datetime.fromtimestamp(record.created, tz=ZoneInfo("Europe/Amsterdam"))
             log_level = record.levelname # INFO, WARNING, ERROR etc.
 
             # Loggin entry data
@@ -107,14 +122,13 @@ class CustomFormatter(logging.Formatter):
         record.script_id = self.script_id
         return super().format(record)
 
-def setup_logging(klant, script, lakehouse_table_name=None):
+def setup_logging(klant, script, script_id=None, lakehouse_table_name=LOG_TABLE_NAME):
     """
     Configureer logging met Lakehouse logging en terminal logging.
-    """
-    # Lakehouse tabel naam bepalen
-    if lakehouse_table_name is None:
-        lakehouse_table_name = LOG_TABLE_NAME
     
+    Als een script_id wordt meegegeven, wordt dat ID gebruikt. 
+    Anders wordt het hoogste ID uit de logtabel + 1 gebruikt.
+    """
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
@@ -122,23 +136,26 @@ def setup_logging(klant, script, lakehouse_table_name=None):
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
-    # ScriptID bepalen
-    script_id = 1
-    try:
-        spark = SparkSession.builder.getOrCreate()
-        
-        # Controleer of de tabel bestaat in de huidige Lakehouse-database
-        if spark.catalog.tableExists(lakehouse_table_name):
-            # De f-string voegt hier de *waarde* van de variabele LOG_TABLE_NAME in
-            result_df = spark.sql(f"SELECT MAX(ScriptID) as max_id FROM {lakehouse_table_name}")
-            max_id = result_df.collect()[0]['max_id']
-            if max_id is not None:
-                script_id = max_id + 1
-                
-    except Exception as e:
-        print(f"WAARSCHUWING: Kon geen nieuw ScriptID ophalen. Fout: {e}")
-        script_id = 0
+    # Als er geen script_id is meegegeven, bepaal het dan zelf.
+    if script_id is None:
+        try:
+            spark = SparkSession.builder.getOrCreate()
+            
+            # Controleer of de tabel bestaat in de huidige Lakehouse-database
+            if spark.catalog.tableExists(lakehouse_table_name):
+                result_df = spark.sql(f"SELECT MAX(ScriptID) as max_id FROM {lakehouse_table_name}")
+                max_id = result_df.collect()[0]['max_id']
+                if max_id is not None:
+                    script_id = max_id + 1
+                else:
+                    script_id = 1 # Eerste entry in de tabel
+            else:
+                script_id = 1 # Tabel bestaat nog niet
 
+        except Exception as e:
+            print(f"WAARSCHUWING: Kon geen nieuw ScriptID ophalen. Fout: {e}")
+            script_id = 0 # Fallback
+    
     # Maak en configureer de Lakehouse handler
     lakehouse_handler = LakehouseLogHandler(
         customer=klant,
@@ -146,7 +163,8 @@ def setup_logging(klant, script, lakehouse_table_name=None):
         script_id=script_id,
         lakehouse_table_name=lakehouse_table_name
     )
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', 
+    # Gebruik de TimezoneFormatter voor correcte tijdweergave in console logs
+    formatter = TimezoneFormatter('%(asctime)s - %(levelname)s - %(message)s', 
                                 datefmt='%Y-%m-%d %H:%M:%S')
     lakehouse_handler.setFormatter(formatter)
     logger.addHandler(lakehouse_handler)

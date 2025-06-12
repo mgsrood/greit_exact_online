@@ -33,7 +33,7 @@ class SyncFormatManager:
             "Dossiers": f"Finnit_Dossiers?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "Forecasts": f"Finnit_Forecasts?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "Roosters": f"Finnit_Roosters?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2"
-        }
+            }
 
     def _full_connectors(self):
         """Retourneert de AFAS connectors met eventuele filters."""
@@ -99,8 +99,8 @@ def execute_get_request(api_string, token, connector, klantnaam, table):
     if df.empty:
         info_msg = f"Geen data opgehaald voor tabel: {table}"
         logging.info(f"{info_msg} | {klantnaam}")
-        return df, 'false'
+        return df, False
         
     success_msg = f"Ophalen DataFrame gelukt voor tabel: {table}"
     logging.info(f"{success_msg} | {klantnaam}")
-    return df, 'false'
+    return df, False

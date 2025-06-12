@@ -4,10 +4,10 @@ import struct
 import time
 import msal
 
-class DatabaseConnectionError(Exception):
+class ConnectorError(Exception):
     pass
 
-class DatabaseConnection:
+class Connector():
     def get_azure_sql_access_token(self, tenant_id, client_id, client_secret):
         
         authority = f"https://login.microsoftonline.com/{tenant_id}"
@@ -20,7 +20,7 @@ class DatabaseConnection:
         access_token = token_response.get("access_token")
         if not access_token:
             logging.error("Access token ophalen mislukt.")
-            raise DatabaseConnectionError("Access token ophalen mislukt.")
+            raise ConnectorError("Access token ophalen mislukt.")
         
         token_bytes = bytes(access_token, "UTF-8")
         exptoken = b""
@@ -68,13 +68,13 @@ def connect_to_database(self, connectie_string, auth_method="AzureSQL", tenant_i
             
         except pyodbc.OperationalError as e:
             if auth_method.upper() == "AzureSQLMEI" and "Expired" in str(e):
-                print("Token is verlopen, vernieuwen...")
+                logging.info("Token is verlopen, vernieuwen...")
                 token_struct = self.get_azure_sql_access_token(tenant_id, client_id, client_secret)
                 continue  # Probeer opnieuw met het vernieuwde token
             else:
-                print(f"Fout bij poging {attempt + 1} om verbinding te maken: {e}")
+                logging.error(f"Fout bij poging {attempt + 1} om verbinding te maken: {e}")
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
                 else:
-                    print("Kan geen verbinding maken met de database na meerdere pogingen.")
-                    return None
+                    logging.error("Kan geen verbinding maken met de database na meerdere pogingen.")
+                    raise ConnectorError("Kan geen verbinding maken met de database na meerdere pogingen.")
