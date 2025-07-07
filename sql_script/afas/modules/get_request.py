@@ -42,6 +42,7 @@ class SyncFormatManager:
         
         return {
             "GrootboekMutaties": f"Finnit_Grootboekmutaties?filterfieldids=Boekjaar&filtervalues={last_year}&operatortypes=2",
+            "Nacalculatie": f"Finnit_Nacalculatie?filterfieldids=Boekjaar&filtervalues={last_year}&operatortypes=2",
         }
         
     def return_connectors(self, laatste_sync):

@@ -78,7 +78,7 @@ def afas(connection_string, config_manager, klant):
                     # Uitvoeren GET Request
                     logging.info(f"Start GET Requests voor tabel: {table} | {klant}")
                     df, error = execute_get_request(api_string, token, connector, klant, table)
-                    
+
                     if error:
                         errors_occurred = True
                         
