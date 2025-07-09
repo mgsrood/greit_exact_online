@@ -141,7 +141,9 @@ class TypeMappingConfig:
                 "Gereed": "bit",
                 "Doorbelasten": "bit",
                 "WBSO": "nvarchar",
-                "Termijnen": "int"
+                "Termijnen": "int",
+                "Gefactureerd": "decimal",
+                "Te_factureren": "decimal",
             },
             "Relaties": {
                 "OmgevingID": "int",
