@@ -445,7 +445,11 @@ def convert_column_types(df, column_types):
                 elif dtype == 'int':
                     df[column] = pd.to_numeric(df[column], errors='coerce').fillna(0).astype(int)
                 elif dtype == 'nvarchar':
-                    df[column] = df[column].astype(str)
+                    def convert_to_nvarchar(value):
+                        if pd.isna(value) or value is None:
+                            return None
+                        return str(value)
+                    df[column] = df[column].apply(convert_to_nvarchar)
                 elif dtype == 'decimal':
                     df[column] = df[column].apply(lambda x: Decimal(x) if pd.notna(x) else None)
                 elif dtype == 'bit' and column in df.columns:

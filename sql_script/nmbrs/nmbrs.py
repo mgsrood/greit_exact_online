@@ -82,6 +82,8 @@ def nmbrs(connection_string, config_manager, klant):
             
             # Roep de nieuwe methode aan in SoapManager
             df_report_data = soap_manager.execute_report_creation(company_id, year)
+            pd.set_option('display.max_columns', None)
+            print(df_report_data.head())
             
             if df_report_data is None:
                 logging.error(f"Kon geen rapportdata ophalen voor company {company_id}, year {year}. Verwerking gestopt.")
@@ -126,4 +128,3 @@ def nmbrs(connection_string, config_manager, klant):
     except Exception as e:
         logging.error(f"Fout bij het uitvoeren van het script: {e}")
         return False
-
