@@ -138,6 +138,9 @@ def exact(connection_string, config_manager, klant):
             
             # Endpoint loop
             for tabel, endpoint in endpoints.items():
+                # Reset error flag per tabel
+                tabel_error_occurred = False
+                
                 for table, status in table_config_dict.items():
                     if table == tabel:
                         if status == 0:
@@ -148,10 +151,14 @@ def exact(connection_string, config_manager, klant):
                             # Stel de logging context in voor deze tabel, behoud de administratiecode
                             config_manager.set_logging_context(administratiecode=division_code, tabel=tabel)
                             
+                            logging.info(f"Start verwerking tabel: {tabel} | {division_name} ({division_code})")
+                            
                             # Uitvoeren GET Request
                             df, error = execute_get_request(config_manager, division_code, url, endpoint, connection_string, tabel, division_name)
                             
                             if error:
+                                logging.error(f"Fout bij GET Request voor tabel: {tabel} | {division_name} ({division_code})")
+                                tabel_error_occurred = True
                                 errors_occurred = True
                                 continue
                             
@@ -159,49 +166,77 @@ def exact(connection_string, config_manager, klant):
                                 logging.info(f"Geen data opgehaald voor tabel: {tabel} | {division_name} ({division_code})")
                                 continue
                             
+                            logging.info(f"Data succesvol opgehaald voor tabel {tabel}: {len(df)} records")
+                            
                             # Maak een DataTransformer instantie
                             try:
                                 transformer = DataTransformer(config_manager)
+                                logging.info(f"DataTransformer instantie succesvol aangemaakt voor tabel: {tabel}")
                             except Exception as e:
-                                logging.error(f"Fout bij maken DataTransformer instantie: {e}")
+                                logging.error(f"Fout bij maken DataTransformer instantie voor tabel {tabel}: {e}")
+                                tabel_error_occurred = True
+                                errors_occurred = True
+                                continue
                             
                             # Mogelijke appending functies toepassen
                             try:
                                 df_appended = transformer.transform_data(df, tabel, division_code, division_name)
+                                logging.info(f"Data transformatie succesvol voor tabel: {tabel}")
                             except Exception as e:
-                                logging.error(f"Fout bij toepassen appending functies: {e}")
+                                logging.error(f"Fout bij toepassen appending functies voor tabel {tabel}: {e}")
+                                tabel_error_occurred = True
+                                errors_occurred = True
+                                continue
                             
                             # Kolom mapping toepassen
                             try:
                                 df_transformed = apply_column_mapping(df_appended, tabel, division_code)
+                                logging.info(f"Kolom mapping succesvol voor tabel: {tabel}")
                             except Exception as e:
-                                logging.error(f"Fout bij toepassen kolom mapping: {e}")
+                                logging.error(f"Fout bij toepassen kolom mapping voor tabel {tabel}: {e}")
+                                tabel_error_occurred = True
+                                errors_occurred = True
+                                continue
                             
                             # Type conversie toepassen
                             try:
                                 df_converted = apply_type_conversion(df_transformed, tabel)
+                                logging.info(f"Type conversie succesvol voor tabel: {tabel}")
                             except Exception as e:
-                                logging.error(f"Fout bij toepassen type conversie: {e}")
+                                logging.error(f"Fout bij toepassen type conversie voor tabel {tabel}: {e}")
+                                tabel_error_occurred = True
+                                errors_occurred = True
+                                continue
 
                             # Rijen verwijderen
                             try:
                                 apply_table_clearing(connection_string, table, division_code, reporting_year, laatste_sync)
+                                logging.info(f"Tabel clearing succesvol voor tabel: {tabel}")
                             except Exception as e:
-                                logging.error(f"Fout bij toepassen tabel legen: {e}")
+                                logging.error(f"Fout bij toepassen tabel legen voor tabel {tabel}: {e}")
+                                tabel_error_occurred = True
+                                errors_occurred = True
+                                continue
                             
                             # Rijen toevoegen
                             try:
                                 succes = apply_table_writing(connection_string, df_converted, tabel, laatste_sync)
+                                if succes:
+                                    logging.info(f"Tabel writing succesvol voor tabel: {tabel}")
+                                else:
+                                    logging.error(f"Tabel writing gefaald voor tabel: {tabel}")
+                                    tabel_error_occurred = True
+                                    errors_occurred = True
+                                    continue
                             except Exception as e:
-                                logging.error(f"Fout bij toevoegen rijen: {e}")
-                            
-                            if succes is False:
+                                logging.error(f"Fout bij toevoegen rijen voor tabel {tabel}: {e}")
+                                tabel_error_occurred = True
                                 errors_occurred = True
                                 continue
                             
-                # Logging van afronding 
-                if errors_occurred is False:
-                    logging.info(f"GET Request succesvolafgerond voor tabel: {tabel} | {division_name} ({division_code})")
+                # Logging van afronding per tabel
+                if not tabel_error_occurred:
+                    logging.info(f"GET Request succesvol afgerond voor tabel: {tabel} | {division_name} ({division_code})")
                 else:
                     logging.error(f"Fout bij GET Request voor tabel: {tabel} | {division_name} ({division_code})")
                 
