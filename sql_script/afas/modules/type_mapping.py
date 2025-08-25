@@ -389,7 +389,13 @@ class TypeMappingConfig:
                 "Afdeling_Code": "nvarchar",
                 "Gewijzigd_Op": "datetime",
                 "Pro_forma": "bit",
-            }
+            },
+            "Tarieven": {
+                "OmgevingID": "int",
+                "Administratie_Code": "int",
+                "ProjectID": "nvarchar",
+                "Verkoopprijs": "decimal",
+            },
         }
 
     def get_mapping(self, table_name):

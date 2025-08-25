@@ -119,6 +119,11 @@ class TableConfigManager:
                 mode="none",
                 unique_columns=["OmgevingID", "Administratie_Code", "Nacalculatie_GUID"],
                 administration_column="Administratie_Code"
+            ),
+            "Tarieven": TableConfig(
+                mode="truncate",
+                unique_columns=["OmgevingID", "Administratie_Code", "ProjectID"],
+                administration_column="Administratie_Code"
             )
         }
 

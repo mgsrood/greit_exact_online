@@ -36,7 +36,8 @@ class SyncFormatManager:
             "CaseLogging": f"Finnit_CaseLogging?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "Dossiers": f"Finnit_Dossiers?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "Forecasts": f"Finnit_Forecasts?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
-            "Roosters": f"Finnit_Roosters?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2"
+            "Roosters": f"Finnit_Roosters?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
+            "Tarieven": f"Finnit_Tarieven",
             }
 
     def _full_connectors(self):
@@ -63,6 +64,7 @@ class SyncFormatManager:
             "CaseLogging": f"Finnit_CaseLogging",
             "Dossiers": f"Finnit_Dossiers",
             "Roosters": f"Finnit_Roosters",
+            "Tarieven": f"Finnit_Tarieven"
         }
         
     def return_connectors(self, laatste_sync):

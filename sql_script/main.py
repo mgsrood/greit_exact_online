@@ -40,14 +40,14 @@ try:
         config_manager.update_klant(klant)
             
         # Alleen applicatie Exact verwerken
-        if applicatie == "Exact":
-            exact(connection_string, config_manager, klant)
+        """if applicatie == "Exact":
+            exact(connection_string, config_manager, klant)"""
         
-        if applicatie == "AFAS":
+        if applicatie == "AFAS" and klant == "SecureVest B.V.":
             afas(connection_string, config_manager, klant)
                    
-        if applicatie == "Nmbrs":
-            nmbrs(connection_string, config_manager, klant)
+        """if applicatie == "Nmbrs":
+            nmbrs(connection_string, config_manager, klant)"""
     
     # Einde script
     end_log(start_time)
