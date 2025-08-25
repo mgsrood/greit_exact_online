@@ -11,6 +11,10 @@ class SyncFormatManager:
 
     def _regular_connectors(self,laatste_sync):
         """Retourneert de AFAS connectors met eventuele filters."""
+        
+        # Datetime naar 00:00:00
+        start_of_day = datetime.strptime(laatste_sync, "%Y-%m-%dT%H:%M:%S").replace(hour=0, minute=0, second=0, microsecond=0)
+        
         return {
             "Forecasts": f"Finnit_Forecasts?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
             "Divisions": "Finnit_Divisions",
@@ -21,7 +25,7 @@ class SyncFormatManager:
             "Projecten": "Finnit_Projecten",
             "Abonnementen": f"Finnit_Abonnementen",
             "Relaties": "Finnit_Relaties",
-            "Nacalculatie": f"Finnit_Nacalculatie?filterfieldids=Gewijzigd_Op&filtervalues={laatste_sync}&operatortypes=2",
+            "Nacalculatie": f"Finnit_Nacalculatie?filterfieldids=Gewijzigd_Op&filtervalues={start_of_day}&operatortypes=2",
             "BudgetProjecten": "Finnit_BudgetProjecten",
             "Urenregistratie": "Finnit_Urenregistratie",
             "Verlof": "Finnit_Verlof",
@@ -38,11 +42,27 @@ class SyncFormatManager:
     def _full_connectors(self):
         """Retourneert de AFAS connectors met eventuele filters."""
         
-        last_year = datetime.now().year - 1
-        
         return {
-            "GrootboekMutaties": f"Finnit_Grootboekmutaties?filterfieldids=Boekjaar&filtervalues={last_year}&operatortypes=2",
-            "Nacalculatie": f"Finnit_Nacalculatie?filterfieldids=Boekjaar&filtervalues={last_year}&operatortypes=2",
+            "Forecasts": f"Finnit_Forecasts",
+            "Divisions": "Finnit_Divisions",
+            "GrootboekMutaties": f"Finnit_Grootboekmutaties",
+            "Grootboekrekening": "Finnit_Grootboekrekening",
+            "GrootboekRubriek": "Finnit_GrootboekRubriek",
+            "Budget": "Finnit_Budget",
+            "Projecten": "Finnit_Projecten",
+            "Abonnementen": f"Finnit_Abonnementen",
+            "Relaties": "Finnit_Relaties",
+            "Nacalculatie": f"Finnit_Nacalculatie",
+            "BudgetProjecten": "Finnit_BudgetProjecten",
+            "Urenregistratie": "Finnit_Urenregistratie",
+            "Verlof": "Finnit_Verlof",
+            "VerzuimUren": "Finnit_VerzuimUren",
+            "VerzuimVerloop": "Finnit_VerzuimVerloop",
+            "Medewerkers": "Finnit_Medewerkers",
+            "Contracten": "Finnit_Contracten",
+            "CaseLogging": f"Finnit_CaseLogging",
+            "Dossiers": f"Finnit_Dossiers",
+            "Roosters": f"Finnit_Roosters",
         }
         
     def return_connectors(self, laatste_sync):

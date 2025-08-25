@@ -150,26 +150,21 @@ def clear_data(engine, table, config, omgeving_id, laatste_sync, script_name=Non
         with engine.connect() as connection:
             # Controleer script_name voor volledige synchronisatie
             if script_name == "Volledig":
-                if table == "GrootboekMutaties":
-                    last_year = datetime.now().year - 1
-                    logging.info(f"Volledige synchronisatie gedetecteerd voor GrootboekMutaties. Start jaar: {last_year}")
-                    
-                    query = f"DELETE FROM {table} WHERE Boekjaar >= :start_year"
-                    if omgeving_id:
-                        query += f" AND OmgevingID = :omgeving_id"
-                        logging.info(f"GrootboekMutaties: Filter op omgeving {omgeving_id}")
-                    
-                    result = connection.execute(
-                        text(query),
-                        {"start_year": last_year, "omgeving_id": omgeving_id}
-                    )
-                    rows_deleted = result.rowcount
-                    logging.info(f"GrootboekMutaties: Succesvol {rows_deleted} rijen verwijderd vanaf jaar {last_year}")
-                    connection.commit()
-                    return rows_deleted
-                else:
-                    logging.info(f"Tabel {table}: Geen specifieke datum logica voor volledige synchronisatie, overslaan")
-                    return 0
+                logging.info(f"Volledige synchronisatie gedetecteerd voor {table}")
+                
+                query = f"DELETE FROM {table}"
+                if omgeving_id:
+                    query += f" WHERE OmgevingID = :omgeving_id"
+                    logging.info(f"{table}: Filter op omgeving {omgeving_id}")
+                
+                result = connection.execute(
+                    text(query),
+                    {"omgeving_id": omgeving_id}
+                )
+                rows_deleted = result.rowcount
+                logging.info(f"{table}: Succesvol {rows_deleted} rijen verwijderd")
+                connection.commit()
+                return rows_deleted
 
             # Controleer laatste_sync als die is meegegeven
             if laatste_sync:
@@ -231,14 +226,10 @@ def write_data(engine, df, table, config, laatste_sync, script_name=None):
             try:
                 # Controleer script_name voor volledige synchronisatie
                 if script_name == "Volledig":
-                    if table == "GrootboekMutaties":
-                        logging.info(f"Volledige synchronisatie gedetecteerd voor GrootboekMutaties. Direct schrijven van {len(df)} rijen")
-                        df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
-                        logging.info(f"GrootboekMutaties: Succesvol {len(df)} rijen geschreven")
-                        return
-                    else:
-                        logging.info(f"Tabel {table}: Geen specifieke schrijf logica voor volledige synchronisatie, overslaan")
-                        return
+                    logging.info(f"Volledige synchronisatie gedetecteerd voor {table}. Direct schrijven van {len(df)} rijen")
+                    df.to_sql(table, engine, index=False, if_exists="append", schema="dbo")
+                    logging.info(f"{table}: Succesvol {len(df)} rijen geschreven")
+                    return
 
                 if config.mode == 'truncate':
                     # Voor truncate mode, gebruik simpele insert
